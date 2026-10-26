@@ -247,9 +247,9 @@
   /* 학생 모드: 촬영 화면만 남기고 나머지는 숨김 */
   .lockBtn { border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 500; padding: 7px 12px; border-radius: 99px; cursor: pointer; white-space: nowrap; }
   .lockBtn:hover { color: var(--text); border-color: var(--text); }
-  body.kiosk .lockBtn { margin-left: auto; padding: 7px 10px; opacity: .5; }
-  body.kiosk .tabs, body.kiosk #toEditor, body.kiosk #fxEditBtn, body.kiosk .fxAdd, body.kiosk .kioskHide { display: none !important; }
-  body.kiosk .sheet { padding-bottom: 8px; }
+  body.kiosk .lockBtn { padding: 7px 10px; opacity: .5; }
+  /* 프레임 만들기는 열어 두고, 필터 만들기·카메라 설정·선생님 프레임/글꼴 관리는 숨김 */
+  body.kiosk #fxEditBtn, body.kiosk .fxAdd, body.kiosk .kioskHide { display: none !important; }
   .pinBox { width: min(440px, 100%); }
   .pinBox input[type=password] { width: 100%; box-sizing: border-box; font: inherit; font-size: 22px; letter-spacing: .4em; padding: 10px 14px; margin-top: 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
   .pinBox input[type=password]::placeholder { letter-spacing: 0; font-size: 15px; }
@@ -258,7 +258,7 @@
     .lockBtn { margin-left: auto; }
     .tabs button { white-space: nowrap; }
     .tabs .long { display: none; }
-    body:not(.kiosk) .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+    .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
   }
   .pinErr { color: #d6336c; min-height: 1.3em; margin: 8px 0 0; font-size: 13px; }
   .idleNote { margin: 12px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -585,10 +585,10 @@
     <button class="btn" id="redoBtn" title="다시 실행 (Ctrl+Y)">↷</button>
     <button class="btn" id="newBtn">새로 만들기</button>
     <span class="spacer"></span>
-    <button class="btn" id="importBtn">불러오기</button>
-    <button class="btn" id="exportJsonBtn">프레임 파일 내보내기</button>
+    <button class="btn kioskHide" id="importBtn">불러오기</button>
+    <button class="btn kioskHide" id="exportJsonBtn">프레임 파일 내보내기</button>
     <button class="btn" id="exportPngBtn" title="사진칸이 투명한 PNG">PNG 저장</button>
-    <button class="btn" id="saveBtn">내 프레임에 저장</button>
+    <button class="btn kioskHide" id="saveBtn">내 프레임에 저장</button>
     <button class="btn dark" id="useBtn">이 프레임으로 촬영 →</button>
     <input type="file" id="importFile" accept=".json,application/json" hidden>
   </div>
@@ -2238,7 +2238,7 @@ function refreshLeft() {
         it.insertAdjacentHTML("beforeend", `<span class="name">${esc(fr.name)}</span>`);
         const open = document.createElement("button"); open.className = "btn sm"; open.textContent = "열기";
         open.onclick = () => { loadIntoEditor(fr); toast(`'${fr.name}'을(를) 열었어요`); };
-        const del = document.createElement("button"); del.className = "btn sm"; del.textContent = "삭제";
+        const del = document.createElement("button"); del.className = "btn sm kioskHide"; del.textContent = "삭제";
         del.onclick = () => { if (confirm(`'${fr.name}' 프레임을 삭제할까요?`)) { store.set("m4c.frames", myFrames().filter((x) => x.id !== fr.id)); refreshLeft(); renderFramePick(); } };
         it.append(open, del); mf.appendChild(it);
       });
@@ -2676,9 +2676,9 @@ async function loadFonts() {
 }
 function fontSectionHtml() {
   return `<h3>내 글꼴</h3>
-    <button class="btn primary" id="fontAdd" style="width:100%">＋ 글꼴 파일 추가</button>
+    <button class="btn primary kioskHide" id="fontAdd" style="width:100%">＋ 글꼴 파일 추가</button>
     <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" multiple hidden>
-    <p class="hint" style="margin-top:6px">무료 글꼴을 받아서 <b>.ttf / .otf / .woff</b> 파일을 추가하세요. 파일을 화면에 끌어다 놓아도 돼요.<br>
+    <p class="hint kioskHide" style="margin-top:6px">무료 글꼴을 받아서 <b>.ttf / .otf / .woff</b> 파일을 추가하세요. 파일을 화면에 끌어다 놓아도 돼요.<br>
       받는 곳: <a href="https://noonnu.cc" target="_blank" rel="noopener noreferrer">눈누</a> ·
       <a href="https://fonts.google.com/?subset=korean" target="_blank" rel="noopener noreferrer">Google Fonts</a><br>
       글꼴마다 쓸 수 있는 범위가 달라요. 상업적으로 쓸 땐 라이선스를 확인하세요.</p>
@@ -2686,7 +2686,7 @@ function fontSectionHtml() {
       <div class="pv" style="font-family:'${esc(f.family)}', sans-serif">우리집 네컷 ABC 123</div>
       <div class="nm">${esc(f.family)}</div>
       <div class="row"><button class="btn sm" data-fadd="${esc(f.family)}">이 글꼴로 글자 추가</button>
-      <button class="btn sm" data-fdel="${esc(f.family)}">삭제</button></div></div>`).join("") || '<p class="hint">아직 추가한 글꼴이 없어요.</p>'}</div>`;
+      <button class="btn sm kioskHide" data-fdel="${esc(f.family)}">삭제</button></div></div>`).join("") || '<p class="hint">아직 추가한 글꼴이 없어요.</p>'}</div>`;
 }
 function bindFontSection() {
   $("fontAdd").onclick = () => $("fontFile").click();
@@ -3118,7 +3118,6 @@ resetSession();
 
 /* ════════════════ 탭 전환·시작 ════════════════ */
 function switchTab(tab) {
-  if (kiosk.on && tab !== "booth") return false;
   if (tab === "editor" && (sess.frameOver || sess.shootOver)) {
     toast(sess.frameOver ? "프레임 만들기 시간(3분)이 끝났어요. 지금 프레임으로 촬영해 주세요." : "촬영이 끝나서 프레임을 바꿀 수 없어요.");
     return false;

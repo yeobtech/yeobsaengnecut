@@ -1,6 +1,6 @@
 // 오프라인에서도 열리도록 앱 파일을 기기에 보관하는 서비스 워커
 // 앱을 고친 뒤에는 VERSION을 올려야 기기에 새 파일이 반영돼요.
-const VERSION = "m4c-v8";
+const VERSION = "m4c-v9";
 const CORE = [
   "./", "./index.html", "./ai.js", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png",
