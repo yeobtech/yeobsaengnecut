@@ -448,6 +448,37 @@
   }
 </style>
 <style id="pageSize">@page { size: 4in 6in; margin: 0; }</style>
+<style>
+  /* ════════ 개인정보 동의 · 사용법 안내 · 제한시간 ════════ */
+  .modal.gate { z-index: 60; }
+  .gateBox { width: min(560px, 100%); padding: 24px; }
+  .gateBox h2 { margin: 6px 0 10px; font-size: 22px; }
+  .gateBox p { margin: 0 0 10px; line-height: 1.6; }
+  .consentTbl { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 8px 0 12px; }
+  .consentTbl th, .consentTbl td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; line-height: 1.5; }
+  .consentTbl th { width: 30%; background: var(--soft); font-weight: 700; white-space: nowrap; }
+  .agreeRow { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 12px; background: var(--soft); font-weight: 700; cursor: pointer; }
+  .agreeRow input { width: 22px; height: 22px; accent-color: var(--pop); flex: none; }
+  .gateErr { color: #d63a4f; font-size: 13px; min-height: 1.2em; margin: 8px 0 0; }
+  .guideStep { display: none; }
+  .guideStep.on { display: block; animation: gIn .25s ease; }
+  @keyframes gIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  .guideIcon { font-size: 54px; line-height: 1; margin: 4px 0 8px; }
+  .guideStep ol { margin: 4px 0 10px; padding-left: 20px; line-height: 1.75; }
+  .guideStep .time { display: inline-block; padding: 3px 10px; border-radius: 99px; background: var(--pop); color: #fff; font-size: 12.5px; font-weight: 700; }
+  .guideDots { display: flex; gap: 6px; justify-content: center; margin: 14px 0 0; }
+  .guideDots i { display: block; width: 8px; height: 8px; border-radius: 99px; background: var(--line); transition: all .2s; }
+  .guideDots i.on { width: 22px; background: var(--text); }
+  .gateFoot { display: flex; gap: 8px; align-items: center; margin-top: 16px; }
+  .gateFoot .spacer { flex: 1; }
+  .gateFoot .btn { padding: 11px 16px; }
+  .limitPill { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 35; padding: 7px 14px; border-radius: 99px;
+    background: var(--night); color: #f3eeec; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 4px 14px rgba(0,0,0,.18); pointer-events: none; }
+  .limitPill.warn { background: #d63a4f; animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: translateX(-50%) scale(1.06); } }
+  .helpBtn { padding: 7px 11px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  @media print { .limitPill, .modal.gate { display: none !important; } }
+</style>
 </head>
 <body>
 <div class="sheet">
@@ -458,6 +489,7 @@
     <button role="tab" data-tab="editor" aria-selected="false">프레임 만들기</button>
     <button id="tabNew" class="tabNew" title="빈 캔버스로 새 프레임 시작">+ 새 프레임<span class="long"> 만들기</span></button>
   </nav>
+  <button id="helpBtn" class="helpBtn" title="사용법 다시 보기">? 사용법</button>
   <button id="lockBtn" class="lockBtn" title="학생 모드: 촬영 화면만 보이게 잠그기">🔒 학생 모드</button>
   <div class="meta" aria-hidden="true"><span>SCHOOL PHOTO BOOTH</span><i class="dot"></i><span id="clock">KST --:--:--</span></div>
 </header>
@@ -540,7 +572,7 @@
       <p>저장하거나 바로 인쇄해서 나눠 가지세요.</p>
       <div class="row" id="outBtns"></div>
       <p class="idleNote" id="idleNote" hidden></p>
-      <p class="hint" style="margin-top:16px">아이패드: <b>공유·저장</b> → <b>이미지 저장</b>(사진 앱) 또는 <b>프린트</b>(AirPrint), 친구에게는 <b>AirDrop</b><br>PC: 인쇄 창에서 <b>여백 없음</b>, <b>배율 100%(실제 크기)</b>로 맞추세요.</p>
+      <p class="hint" style="margin-top:16px"><b>프린터: Canon SELPHY CP1500 (엽서 크기 용지)</b><br>PC: <b>인쇄 · 4×6에 2장</b> → 프린터 <b>Canon SELPHY CP1500</b>, 용지 <b>엽서(100×148mm)</b>, <b>테두리 없음</b>, 배율 <b>100%(실제 크기)</b><br>아이패드·아이폰: <b>공유·저장</b> → <b>프린트</b>(AirPrint) → SELPHY CP1500<br>안드로이드: <b>PNG 저장</b> → 갤러리에서 <b>인쇄</b>(Mopria) 또는 <b>Canon SELPHY</b> 앱</p>
     </div>
   </section>
 </section>
@@ -733,6 +765,87 @@
 
 <div id="printArea"></div>
 <div class="toast" id="toast"></div>
+<div class="limitPill" id="limitPill" hidden></div>
+
+<!-- 개인정보 수집·이용 동의 -->
+<div class="modal gate" id="consentModal">
+  <div class="modalBox gateBox" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+    <span class="chip">시작하기 전에</span>
+    <h2 id="consentTitle">개인정보(사진) 수집·이용 동의</h2>
+    <p>네컷 사진을 찍으려면 아래 내용을 읽고 동의해 주세요.</p>
+    <table class="consentTbl">
+      <tr><th>수집 항목</th><td>카메라로 찍는 얼굴 사진(영상)</td></tr>
+      <tr><th>이용 목적</th><td>네컷 사진 만들기와 인쇄</td></tr>
+      <tr><th>처리 방법</th><td>사진은 <b>이 기기 안에서만</b> 처리되고 인터넷이나 서버로 보내지 않아요.</td></tr>
+      <tr><th>보관 기간</th><td>기기에 저장하지 않아요. <b>다음 사람</b> 차례가 되면 화면에서 바로 지워져요. 인쇄한 사진은 본인이 가져가요.</td></tr>
+      <tr><th>동의 거부</th><td>동의하지 않아도 돼요. 다만 동의하지 않으면 사진 촬영을 할 수 없어요.</td></tr>
+    </table>
+    <label class="agreeRow"><input type="checkbox" id="consentChk"> 위 내용을 읽었고, 사진 수집·이용에 동의해요.</label>
+    <p class="gateErr" id="consentErr"></p>
+    <div class="gateFoot">
+      <button class="btn" id="consentNo">동의하지 않아요</button>
+      <span class="spacer"></span>
+      <button class="btn primary" id="consentOk" disabled>동의하고 시작하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 사용법 안내 (넘기면서 보기) -->
+<div class="modal gate" id="guideModal" hidden>
+  <div class="modalBox gateBox" role="dialog" aria-modal="true" aria-label="사용법 안내">
+    <div class="guideStep" data-step="0">
+      <span class="chip">사용법 1 / 4</span>
+      <div class="guideIcon">👋</div>
+      <h2>이렇게 진행돼요</h2>
+      <ol>
+        <li><b>꾸미기</b> · 프레임 고르기 (직접 만들기는 <span class="time">3분</span>)</li>
+        <li><b>찍기</b> · 네 컷 촬영 <span class="time">5분</span></li>
+        <li><b>인쇄</b> · 완성된 사진 뽑기</li>
+      </ol>
+      <p>시간이 줄어들면 화면 위쪽에 남은 시간이 보여요.</p>
+    </div>
+    <div class="guideStep" data-step="1">
+      <span class="chip">사용법 2 / 4</span>
+      <div class="guideIcon">🎨</div>
+      <h2>꾸미기</h2>
+      <ol>
+        <li>오른쪽 <b>프레임</b>에서 마음에 드는 프레임을 골라요.</li>
+        <li><b>필터</b>와 <b>배경 바꾸기</b>로 분위기를 바꿀 수 있어요.</li>
+        <li>프레임을 직접 만들고 싶으면 위쪽 <b>프레임 만들기</b>를 눌러요. 다 만들면 <b>이 프레임으로 촬영 →</b>을 눌러요.</li>
+      </ol>
+      <p><span class="time">3분</span> 프레임 만들기는 3분 동안 할 수 있어요. 시간이 끝나면 그때까지 만든 프레임으로 촬영 화면으로 넘어가요.</p>
+    </div>
+    <div class="guideStep" data-step="2">
+      <span class="chip">사용법 3 / 4</span>
+      <div class="guideIcon">📸</div>
+      <h2>찍기</h2>
+      <ol>
+        <li><b>촬영 시작</b>을 누르면 숫자를 세고 한 컷씩 찍어요.</li>
+        <li>마음에 안 드는 컷은 아래 <b>작은 사진</b>을 눌러 그 컷만 다시 찍어요.</li>
+        <li>네 컷을 다 찍으면 완성된 사진이 아래에 나와요.</li>
+      </ol>
+      <p><span class="time">5분</span> 첫 촬영을 누른 때부터 5분이에요. 시간이 끝나면 남은 컷을 바로 찍고 마무리해요.</p>
+    </div>
+    <div class="guideStep" data-step="3">
+      <span class="chip">사용법 4 / 4</span>
+      <div class="guideIcon">🖨️</div>
+      <h2>인쇄</h2>
+      <ol>
+        <li>완성된 사진 옆의 <b>인쇄</b> 버튼을 눌러요. (세로 긴 네컷은 <b>인쇄 · 4×6에 2장</b>)</li>
+        <li>인쇄 창에서 프린터가 <b>SELPHY CP1500</b>인지 확인하고 <b>인쇄</b>를 눌러요.</li>
+        <li>사진이 나오면 가져가고 <b>다음 사람 →</b>을 눌러 주세요. 내 사진은 화면에서 지워져요.</li>
+      </ol>
+      <p>인쇄가 잘 안 되면 선생님께 말해 주세요.</p>
+    </div>
+    <div class="guideDots" id="guideDots"><i></i><i></i><i></i><i></i></div>
+    <div class="gateFoot">
+      <button class="btn" id="guideSkip">건너뛰기</button>
+      <span class="spacer"></span>
+      <button class="btn" id="guidePrev">← 이전</button>
+      <button class="btn primary" id="guideNext">다음 →</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -1501,6 +1614,7 @@ function compositeTo(ctx, w, h, m) {
 }
 async function runSequence(indices) {
   if (booth.busy || !booth.stream) return;
+  sess.shootStarted = true; updateLimitPill();
   booth.busy = true; setBoothControls(false);
   for (const i of indices) {
     $("shotno").hidden = false; $("shotno").textContent = `${i + 1} / ${booth.shots.length}`;
@@ -1509,19 +1623,22 @@ async function runSequence(indices) {
     await sleep(700);
   }
   $("shotno").hidden = true; booth.busy = false; setBoothControls(true);
+  if (sess.shootOver && !booth.shots.every(Boolean)) return finishShoot();
   if (booth.shots.every(Boolean)) compose();
   kioskArm();
 }
 function setBoothControls(on) {
+  on = on && !sess.shootOver;
   $("startBtn").disabled = !on; $("resetBtn").disabled = !on;
   document.querySelectorAll(".thumb").forEach((t) => (t.disabled = !on));
   document.querySelectorAll("#framePick button").forEach((t) => (t.disabled = !on));
 }
 $("startBtn").onclick = () => {
+  if (sess.shootOver) return;
   booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true;
   runSequence(booth.shots.map((_, i) => i));
 };
-$("resetBtn").onclick = () => { booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true; kioskArm(); };
+$("resetBtn").onclick = () => { if (sess.shootOver) return; booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true; kioskArm(); };
 
 function renderThumbs() {
   const box = $("thumbs"); box.innerHTML = "";
@@ -2844,8 +2961,10 @@ function nextPerson(auto) {
   }
   booth.resultCanvas = null; booth.resultUrl = null;
   $("resultImg").removeAttribute("src"); $("resultBox").hidden = true; $("printArea").innerHTML = "";
+  resetSession(); switchTab("booth"); setBoothControls(true);
   renderThumbs();
   window.scrollTo({ top: 0, behavior: "smooth" });
+  openConsent();
   toast(auto ? "한동안 아무도 없어서 처음 화면으로 돌아왔어요." : "다음 친구 차례예요! 앞 사람 사진은 화면에서 지웠어요.");
 }
 // 학생 모드에서 찍은 사진이 남아 있으면, 아무도 안 만질 때 시간을 세다가 자동으로 넘김
@@ -2910,18 +3029,111 @@ $("pinOk").onclick = async () => {
 document.addEventListener("keydown", (e) => { if (!$("pinModal").hidden && e.key === "Escape") closePin(); });
 $("lockBtn").onclick = () => openPin(kiosk.on ? "unlock" : "lock");
 
+/* ════════════════ 개인정보 동의 · 사용법 안내 · 제한시간 ════════════════ */
+// 한 사람(한 팀)마다: 동의 → 사용법 → 프레임 만들기 3분 · 촬영 5분 → 인쇄 → 다음 사람
+const LIMIT = { shoot: 5 * 60, frame: 3 * 60 };
+const sess = {};
+function resetSession() {
+  Object.assign(sess, { shootLeft: LIMIT.shoot, frameLeft: LIMIT.frame, shootStarted: false, shootOver: false, frameOver: false });
+  updateLimitPill();
+}
+const gateOpen = () => !$("consentModal").hidden || !$("guideModal").hidden;
+const mmss = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+function updateLimitPill() {
+  const pill = $("limitPill"); if (!pill || sess.shootLeft == null) return;
+  let label = null, left = 0;
+  if (!$("editor").hidden && !sess.frameOver) { label = "프레임 만들기"; left = sess.frameLeft; }
+  else if (!$("booth").hidden && sess.shootStarted && !sess.shootOver) { label = "촬영"; left = sess.shootLeft; }
+  pill.hidden = !label || gateOpen();
+  if (label) { pill.textContent = `⏱ ${label} 남은 시간 ${mmss(left)}`; pill.classList.toggle("warn", left <= 30); }
+}
+// 촬영 5분이 끝나면: 남은 컷을 바로 찍고 마무리 (찍는 중이면 그 컷이 끝난 뒤)
+function finishShoot() {
+  sess.shootOver = true; updateLimitPill();
+  const miss = booth.shots.map((s, i) => (s ? -1 : i)).filter((i) => i >= 0);
+  if (booth.busy) return;
+  if (miss.length) { toast("촬영 시간 5분이 끝났어요! 남은 컷을 바로 찍을게요."); runSequence(miss); }
+  else { setBoothControls(false); if ($("resultBox").hidden) compose(); toast("촬영 시간 5분이 끝났어요. 이제 인쇄해 주세요!"); }
+}
+// 프레임 만들기 3분이 끝나면: 지금까지 만든 프레임으로 촬영 화면으로
+function finishFrame() {
+  sess.frameOver = true;
+  if (!$("fxModal").hidden) $("fxBack").click();
+  if (!$("bgrModal").hidden) bgrClose();
+  if (!$("editor").hidden) { boothSetFrame({ ...clone(ed.frame), _draft: true }); switchTab("booth"); }
+  toast("프레임 만들기 시간 3분이 끝났어요. 지금 프레임으로 촬영해요!");
+  updateLimitPill();
+}
+setInterval(() => {
+  if (gateOpen() || sess.shootLeft == null) return;
+  if (!$("editor").hidden && !sess.frameOver) { if (--sess.frameLeft <= 0) finishFrame(); }
+  else if (!$("booth").hidden && sess.shootStarted && !sess.shootOver) { if (--sess.shootLeft <= 0) finishShoot(); }
+  updateLimitPill();
+}, 1000);
+
+// 개인정보 동의 창: 체크해야 시작 버튼이 켜져요
+let camStarted = false;
+function openConsent() {
+  $("consentChk").checked = false; $("consentOk").disabled = true; $("consentErr").textContent = "";
+  $("guideModal").hidden = true; $("consentModal").hidden = false; updateLimitPill();
+}
+$("consentChk").onchange = () => { $("consentOk").disabled = !$("consentChk").checked; $("consentErr").textContent = ""; };
+$("consentNo").onclick = () => { $("consentChk").checked = false; $("consentOk").disabled = true;
+  $("consentErr").textContent = "동의하지 않으면 사진을 찍을 수 없어요. 찍고 싶을 때 체크하고 시작해 주세요."; };
+$("consentOk").onclick = () => {
+  if (!$("consentChk").checked) return;
+  $("consentModal").hidden = true;
+  if (!camStarted && navigator.mediaDevices?.getUserMedia) { camStarted = true; startCamera(); }
+  openGuide();
+};
+
+// 사용법 안내: 넘기면서 보기
+const guide = { i: 0, n: 4 };
+function showGuide(i) {
+  guide.i = Math.max(0, Math.min(guide.n - 1, i));
+  document.querySelectorAll("#guideModal .guideStep").forEach((el) => el.classList.toggle("on", +el.dataset.step === guide.i));
+  document.querySelectorAll("#guideDots i").forEach((d, k) => d.classList.toggle("on", k === guide.i));
+  $("guidePrev").style.visibility = guide.i ? "visible" : "hidden";
+  $("guideNext").textContent = guide.i === guide.n - 1 ? "시작하기 ✓" : "다음 →";
+  $("guideSkip").style.visibility = guide.i === guide.n - 1 ? "hidden" : "visible";
+}
+function openGuide() { showGuide(0); $("guideModal").hidden = false; updateLimitPill(); }
+function closeGuide() { $("guideModal").hidden = true; updateLimitPill(); }
+$("guidePrev").onclick = () => showGuide(guide.i - 1);
+$("guideNext").onclick = () => (guide.i === guide.n - 1 ? closeGuide() : showGuide(guide.i + 1));
+$("guideSkip").onclick = closeGuide;
+$("helpBtn").onclick = () => { if ($("consentModal").hidden) openGuide(); };
+document.addEventListener("keydown", (e) => {
+  if ($("guideModal").hidden) return;
+  if (e.key === "ArrowRight") $("guideNext").click();
+  else if (e.key === "ArrowLeft" && guide.i) showGuide(guide.i - 1);
+  else if (e.key === "Escape") closeGuide();
+});
+// 화면을 밀어서 넘기기 (태블릿)
+{ let x0 = null;
+  $("guideModal").addEventListener("pointerdown", (e) => (x0 = e.clientX));
+  $("guideModal").addEventListener("pointerup", (e) => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) dx < 0 ? (guide.i < guide.n - 1 && showGuide(guide.i + 1)) : showGuide(guide.i - 1); }); }
+resetSession();
+
 /* ════════════════ 탭 전환·시작 ════════════════ */
 function switchTab(tab) {
-  if (kiosk.on && tab !== "booth") return;
+  if (kiosk.on && tab !== "booth") return false;
+  if (tab === "editor" && (sess.frameOver || sess.shootOver)) {
+    toast(sess.frameOver ? "프레임 만들기 시간(3분)이 끝났어요. 지금 프레임으로 촬영해 주세요." : "촬영이 끝나서 프레임을 바꿀 수 없어요.");
+    return false;
+  }
   document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
   $("booth").hidden = tab !== "booth"; $("editor").hidden = tab !== "editor";
   document.body.classList.toggle("tab-editor", tab === "editor");
   if (tab === "editor") { sizeCanvas(); refreshAll(); }
   else renderFramePick();
+  updateLimitPill();
+  return true;
 }
 document.querySelectorAll(".tabs button[data-tab]").forEach((b) => (b.onclick = () => switchTab(b.dataset.tab)));
 // 새 프레임 만들기: 편집기로 가서 빈 캔버스로 시작 (전에 하던 것은 실행 취소로 되돌릴 수 있음)
-$("tabNew").onclick = () => { switchTab("editor"); startNewFrame(); toast("빈 캔버스로 시작해요. 먼저 사진칸 레이아웃을 골라 보세요."); };
+$("tabNew").onclick = () => { if (!switchTab("editor")) return; startNewFrame(); toast("빈 캔버스로 시작해요. 먼저 사진칸 레이아웃을 골라 보세요."); };
 $("toEditor").onclick = () => switchTab("editor");
 // 오른쪽 위 시계
 const tick = () => { const d = new Date(); $("clock").textContent = "KST " + [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) => String(n).padStart(2, "0")).join(":"); };
@@ -2950,7 +3162,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   }).catch(() => {});
 }
 if (!navigator.mediaDevices?.getUserMedia) $("msg").textContent = "이 브라우저는 카메라를 지원하지 않아요. Chrome이나 Edge로 열어 주세요.";
-else startCamera();
+else $("msg").textContent = "개인정보 동의 후 카메라가 켜져요.";
 })();
 </script>
 </body>
