@@ -472,12 +472,30 @@
   .gateFoot { display: flex; gap: 8px; align-items: center; margin-top: 16px; }
   .gateFoot .spacer { flex: 1; }
   .gateFoot .btn { padding: 11px 16px; }
-  .limitPill { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 35; padding: 7px 14px; border-radius: 99px;
-    background: var(--night); color: #f3eeec; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 4px 14px rgba(0,0,0,.18); pointer-events: none; }
-  .limitPill.warn { background: #d63a4f; animation: pulse 1s ease-in-out infinite; }
-  @keyframes pulse { 50% { transform: translateX(-50%) scale(1.06); } }
+  /* 위쪽 타이머: 촬영 → 꾸미기 두 칸, 지금 단계는 밝게, 1분·30초 남으면 색이 바뀜 */
+  .limitBar { position: fixed; top: 0; left: 0; right: 0; z-index: 35; height: 56px; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 0 12px;
+    background: var(--night); box-shadow: 0 4px 18px rgba(0,0,0,.2); }
+  .lbSeg { position: relative; overflow: hidden; display: flex; align-items: baseline; justify-content: center; gap: 10px; min-width: 160px; padding: 8px 16px 11px; border-radius: 12px;
+    background: rgba(255,255,255,.08); color: rgba(243,238,236,.5); font-weight: 700; transition: background .3s, color .3s; }
+  .lbSeg .lbName { font-size: 14px; }
+  .lbSeg .lbTime { font-size: 21px; font-variant-numeric: tabular-nums; }
+  .lbSeg .lbFill { position: absolute; left: 0; bottom: 0; height: 4px; background: currentColor; transition: width 1s linear; }
+  .lbSeg.now { background: #fff; color: #161414; }
+  .lbSeg.now .lbFill { background: var(--pop); }
+  .lbSeg.now.warn { background: #ffb020; }
+  .lbSeg.now.danger { background: #e5384f; color: #fff; animation: lbPulse 1s ease-in-out infinite; }
+  .lbSeg.now.danger .lbFill { background: #fff; }
+  .lbSeg.done .lbTime { font-size: 14px; }
+  .lbArrow { color: rgba(243,238,236,.35); font-weight: 700; }
+  @keyframes lbPulse { 50% { transform: scale(1.05); } }
+  body.timing .sheet { padding-top: 56px; }
+  body.timing #editor .work { height: calc(100dvh - 174px); }
+  @media (max-width: 560px) { .lbSeg { min-width: 0; padding: 7px 11px 10px; gap: 6px; } .lbSeg .lbName { font-size: 12.5px; } .lbSeg .lbTime { font-size: 18px; } }
+  /* 꾸미기 단계: 다시 찍기·배경 바꾸기 잠금 / 인쇄 단계: 고르기도 잠금 */
+  body[data-phase=decor] .bgGroup, body[data-phase=print] .bgGroup, body[data-phase=print] .frameGroup, body[data-phase=print] .filterGroup { opacity: .4; pointer-events: none; }
+  body[data-phase=decor] .thumbs, body[data-phase=print] .thumbs { pointer-events: none; }
   .helpBtn { padding: 7px 11px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-  @media print { .limitPill, .modal.gate { display: none !important; } }
+  @media print { .limitBar, .modal.gate { display: none !important; } }
 </style>
 </head>
 <body>
@@ -514,12 +532,13 @@
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="startBtn" disabled>촬영 시작</button>
         <button class="btn" id="resetBtn">처음부터</button>
+        <button class="btn primary" id="toDecorBtn" hidden>꾸미러 가기 →</button>
         <span class="hint">썸네일을 누르면 그 컷만 다시 찍어요.</span>
       </div>
     </section>
 
     <aside class="settings" aria-label="촬영 설정">
-      <div class="group">
+      <div class="group frameGroup">
         <div class="ghead"><h2>프레임</h2><button class="chip" id="toEditor" style="border:0;cursor:pointer">직접 만들기 →</button></div>
         <div class="framepick" id="framePick"></div>
       </div>
@@ -551,12 +570,12 @@
         </div>
       </div>
 
-      <div class="group">
+      <div class="group filterGroup">
         <div class="ghead"><h2>필터</h2><button class="chip" id="fxEditBtn" style="border:0;cursor:pointer" hidden>이 필터 고치기</button></div>
         <div class="filterpick" id="filterPick"></div>
       </div>
 
-      <div class="group">
+      <div class="group bgGroup">
         <div class="ghead"><h2>배경 바꾸기</h2><span class="chip">AI · 기기 안에서 처리</span></div>
         <div class="bgpick" id="bgPick"></div>
         <p class="hint" id="bgStatus" style="margin:8px 0 0"></p>
@@ -569,10 +588,10 @@
     <div class="side">
       <span class="chip">RESULT</span>
       <h2 class="display" style="margin-top:12px">완성된 사진</h2>
-      <p>저장하거나 바로 인쇄해서 나눠 가지세요.</p>
+      <p id="resultLead">저장하거나 바로 인쇄해서 나눠 가지세요.</p>
       <div class="row" id="outBtns"></div>
       <p class="idleNote" id="idleNote" hidden></p>
-      <p class="hint" style="margin-top:16px"><b>프린터: Canon SELPHY CP1500 (엽서 크기 용지)</b><br>PC: <b>인쇄 · 4×6에 2장</b> → 프린터 <b>Canon SELPHY CP1500</b>, 용지 <b>엽서(100×148mm)</b>, <b>테두리 없음</b>, 배율 <b>100%(실제 크기)</b><br>아이패드·아이폰: <b>공유·저장</b> → <b>프린트</b>(AirPrint) → SELPHY CP1500<br>안드로이드: <b>PNG 저장</b> → 갤러리에서 <b>인쇄</b>(Mopria) 또는 <b>Canon SELPHY</b> 앱</p>
+      <p class="hint" id="printHint" style="margin-top:16px"><b>프린터: Canon SELPHY CP1500 (엽서 크기 용지)</b><br>PC: <b>인쇄 · 4×6에 2장</b> → 프린터 <b>Canon SELPHY CP1500</b>, 용지 <b>엽서(100×148mm)</b>, <b>테두리 없음</b>, 배율 <b>100%(실제 크기)</b><br>아이패드·아이폰: <b>공유·저장</b> → <b>프린트</b>(AirPrint) → SELPHY CP1500<br>안드로이드: <b>PNG 저장</b> → 갤러리에서 <b>인쇄</b>(Mopria) 또는 <b>Canon SELPHY</b> 앱</p>
     </div>
   </section>
 </section>
@@ -765,7 +784,11 @@
 
 <div id="printArea"></div>
 <div class="toast" id="toast"></div>
-<div class="limitPill" id="limitPill" hidden></div>
+<div class="limitBar" id="limitPill" hidden aria-live="polite">
+  <div class="lbSeg" id="lbShoot"><span class="lbName">📸 촬영</span><b class="lbTime">3:00</b><i class="lbFill"></i></div>
+  <span class="lbArrow">→</span>
+  <div class="lbSeg" id="lbDecor"><span class="lbName">🎨 꾸미기</span><b class="lbTime">3:00</b><i class="lbFill"></i></div>
+</div>
 
 <!-- 개인정보 수집·이용 동의 -->
 <div class="modal gate" id="consentModal">
@@ -798,33 +821,34 @@
       <div class="guideIcon">👋</div>
       <h2>이렇게 진행돼요</h2>
       <ol>
-        <li><b>꾸미기</b> · 프레임 고르기 (직접 만들기는 <span class="time">3분</span>)</li>
-        <li><b>찍기</b> · 네 컷 촬영 <span class="time">5분</span></li>
+        <li><b>찍기</b> · 네 컷 촬영 <span class="time">3분</span></li>
+        <li><b>꾸미기</b> · 프레임·필터 고르고 직접 꾸미기 <span class="time">3분</span></li>
         <li><b>인쇄</b> · 완성된 사진 뽑기</li>
       </ol>
-      <p>시간이 줄어들면 화면 위쪽에 남은 시간이 보여요.</p>
+      <p>남은 시간은 화면 <b>맨 위</b>에 크게 보여요. 1분 남으면 주황색, 30초 남으면 빨간색으로 바뀌어요.</p>
     </div>
     <div class="guideStep" data-step="1">
       <span class="chip">사용법 2 / 4</span>
-      <div class="guideIcon">🎨</div>
-      <h2>꾸미기</h2>
-      <ol>
-        <li>오른쪽 <b>프레임</b>에서 마음에 드는 프레임을 골라요.</li>
-        <li><b>필터</b>와 <b>배경 바꾸기</b>로 분위기를 바꿀 수 있어요.</li>
-        <li>프레임을 직접 만들고 싶으면 위쪽 <b>프레임 만들기</b>를 눌러요. 다 만들면 <b>이 프레임으로 촬영 →</b>을 눌러요.</li>
-      </ol>
-      <p><span class="time">3분</span> 프레임 만들기는 3분 동안 할 수 있어요. 시간이 끝나면 그때까지 만든 프레임으로 촬영 화면으로 넘어가요.</p>
-    </div>
-    <div class="guideStep" data-step="2">
-      <span class="chip">사용법 3 / 4</span>
       <div class="guideIcon">📸</div>
       <h2>찍기</h2>
       <ol>
+        <li>오른쪽에서 <b>프레임</b>과 <b>배경</b>을 먼저 골라요. 배경 바꾸기는 찍기 전에만 돼요.</li>
         <li><b>촬영 시작</b>을 누르면 숫자를 세고 한 컷씩 찍어요.</li>
         <li>마음에 안 드는 컷은 아래 <b>작은 사진</b>을 눌러 그 컷만 다시 찍어요.</li>
-        <li>네 컷을 다 찍으면 완성된 사진이 아래에 나와요.</li>
+        <li>다 찍었으면 <b>꾸미러 가기 →</b>를 눌러요.</li>
       </ol>
-      <p><span class="time">5분</span> 첫 촬영을 누른 때부터 5분이에요. 시간이 끝나면 남은 컷을 바로 찍고 마무리해요.</p>
+      <p><span class="time">3분</span> 시간이 끝나면 남은 컷을 바로 찍고 꾸미기로 넘어가요.</p>
+    </div>
+    <div class="guideStep" data-step="2">
+      <span class="chip">사용법 3 / 4</span>
+      <div class="guideIcon">🎨</div>
+      <h2>꾸미기</h2>
+      <ol>
+        <li><b>프레임</b>과 <b>필터</b>를 바꾸면 내 사진에 바로 적용돼요.</li>
+        <li>위쪽 <b>프레임 만들기</b>에서 스티커·글자로 직접 꾸며요. 다 꾸몄으면 <b>이 프레임으로 완성 →</b>을 눌러요.</li>
+        <li>끝나면 <b>다 꾸몄어요 · 인쇄하기 →</b>를 눌러요.</li>
+      </ol>
+      <p><span class="time">3분</span> 시간이 끝나면 그때까지 꾸민 대로 완성돼요.</p>
     </div>
     <div class="guideStep" data-step="3">
       <span class="chip">사용법 4 / 4</span>
@@ -1417,17 +1441,23 @@ const booth = {
   frame: null,
 };
 const video = $("video");
+// 한 사람의 진행 단계: free(선생님) · gate(동의·안내) → shoot(촬영 3분) → decor(꾸미기 3분) → print(인쇄)
+const sess = { phase: "free", photos: null };
+// 찍은 사진을 프레임 칸 수에 맞춰 나눠 담기 (칸이 더 많으면 처음 사진부터 다시)
+const fitPhotos = (f) => Array.from({ length: computeSlots(f).length }, (_, i) => sess.photos[i % sess.photos.length]);
 
 function boothSetFrame(f) {
   booth.frame = clone(f);
   store.set("m4c.boothFrame", booth.frame);
   const slots = computeSlots(booth.frame);
-  booth.shots = Array(slots.length).fill(null);
+  // 꾸미기 단계에서는 프레임을 바꿔도 찍은 사진을 그대로 씀
+  booth.shots = sess.photos ? fitPhotos(booth.frame) : Array(slots.length).fill(null);
   const s = slotBox(booth.frame, slots[0]);
   $("stage").style.setProperty("--ar", (s.w / s.h).toFixed(4));
   $("startBtn").textContent = `${slots.length}컷 촬영 시작`;
-  $("resultBox").hidden = true;
+  $("resultBox").hidden = !sess.photos;
   renderThumbs(); renderFramePick();
+  if (sess.photos) compose();
 }
 
 /* 작업물 카드: 채도 높은 색 바탕 위에 프레임, 아래에 이름·종류 */
@@ -1613,8 +1643,7 @@ function compositeTo(ctx, w, h, m) {
   ctx.drawImage(personCv, 0, 0);
 }
 async function runSequence(indices) {
-  if (booth.busy || !booth.stream) return;
-  sess.shootStarted = true; updateLimitPill();
+  if (booth.busy || !booth.stream || sess.phase === "decor" || sess.phase === "print") return;
   booth.busy = true; setBoothControls(false);
   for (const i of indices) {
     $("shotno").hidden = false; $("shotno").textContent = `${i + 1} / ${booth.shots.length}`;
@@ -1623,22 +1652,24 @@ async function runSequence(indices) {
     await sleep(700);
   }
   $("shotno").hidden = true; booth.busy = false; setBoothControls(true);
-  if (sess.shootOver && !booth.shots.every(Boolean)) return finishShoot();
+  if (sess.shootEnding) return finishShoot();
   if (booth.shots.every(Boolean)) compose();
-  kioskArm();
+  updatePhaseUI(); kioskArm();
 }
+const canShoot = () => !sess.shootEnding && sess.phase !== "decor" && sess.phase !== "print";
 function setBoothControls(on) {
-  on = on && !sess.shootOver;
-  $("startBtn").disabled = !on; $("resetBtn").disabled = !on;
-  document.querySelectorAll(".thumb").forEach((t) => (t.disabled = !on));
-  document.querySelectorAll("#framePick button").forEach((t) => (t.disabled = !on));
+  const shoot = on && canShoot();
+  $("startBtn").disabled = !shoot; $("resetBtn").disabled = !shoot;
+  document.querySelectorAll(".thumb").forEach((t) => (t.disabled = !shoot));
+  document.querySelectorAll("#framePick button").forEach((t) => (t.disabled = !on || sess.phase === "print" || sess.shootEnding));
 }
 $("startBtn").onclick = () => {
-  if (sess.shootOver) return;
+  if (!canShoot()) return;
   booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true;
   runSequence(booth.shots.map((_, i) => i));
 };
-$("resetBtn").onclick = () => { if (sess.shootOver) return; booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true; kioskArm(); };
+$("resetBtn").onclick = () => { if (!canShoot()) return; booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true; updatePhaseUI(); kioskArm(); };
+$("toDecorBtn").onclick = () => finishShoot(true);
 
 function renderThumbs() {
   const box = $("thumbs"); box.innerHTML = "";
@@ -1677,6 +1708,9 @@ function renderOutButtons() {
   const L = LAYOUTS[booth.frame.layout], iw = L.w / 300, ih = L.h / 300;
   const box = $("outBtns"); box.innerHTML = "";
   const add = (label, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = label; b.onclick = fn; box.appendChild(b); };
+  // 촬영·꾸미기 단계에는 다음 단계로 가는 버튼만
+  if (sess.phase === "shoot") { add("꾸미러 가기 →", "primary", () => finishShoot(true)); return; }
+  if (sess.phase === "decor") { add("다 꾸몄어요 · 인쇄하기 →", "primary", () => finishDecor(false)); return; }
   const name = `네컷_${Date.now()}.png`, share = canShareFiles();
   if (share) add("공유·저장", "primary", () => shareCanvas(booth.resultCanvas, name));
   add("PNG 저장", share ? "" : "primary", () => download(booth.resultUrl, name));
@@ -1951,7 +1985,7 @@ function draw() {
   if (!ed.frame) return;
   cx.setTransform(1, 0, 0, 1, 0, 0);
   cx.clearRect(0, 0, cv.width, cv.height);
-  renderFrame(cx, ed.frame, { sample: ed.sample });
+  renderFrame(cx, ed.frame, sess.photos ? { photos: fitPhotos(ed.frame), filter: booth.filter } : { sample: ed.sample });
   const k = 1 / viewScale();
   if (ed.guides.length) {
     cx.save(); cx.strokeStyle = "#f03e9e"; cx.lineWidth = 1.5 * k; cx.setLineDash([6 * k, 4 * k]);
@@ -2586,7 +2620,9 @@ $("saveBtn").onclick = () => {
   i >= 0 ? (list[i] = f) : list.push(f);
   if (store.set("m4c.frames", list)) { toast(`'${f.name}'을(를) 내 프레임에 저장했어요`); refreshLeft(); renderFramePick(); }
 };
-$("useBtn").onclick = () => { boothSetFrame({ ...clone(ed.frame), _draft: true }); switchTab("booth"); toast("편집 중인 프레임으로 촬영해요"); };
+$("useBtn").onclick = () => {
+  if (sess.phase === "decor") { switchTab("booth"); toast("내가 꾸민 프레임을 사진에 적용했어요"); return; }
+  boothSetFrame({ ...clone(ed.frame), _draft: true }); switchTab("booth"); toast("편집 중인 프레임으로 촬영해요"); };
 $("exportPngBtn").onclick = () => {
   const c = document.createElement("canvas"); c.width = W(); c.height = H();
   renderFrame(c.getContext("2d"), ed.frame, { transparent: true });
@@ -2945,10 +2981,13 @@ function setKiosk(on) {
   if (on) kiosk.defaults = { frameId: booth.frame.id, draft: !!booth.frame._draft, filter: booth.filter?.id || "none", bgId: booth.bgId || "off" };
   store.set("m4c.kiosk", { on, idle: kiosk.idle, ...(on ? kiosk.defaults : {}) });
   applyKiosk(on);
+  // 켜면 첫 학생부터 동의 → 촬영 3분 → 꾸미기 3분, 끄면 시간 제한 없이
+  if (on) nextPerson(false); else resetSession();
 }
 // 결과를 지우고 처음 상태로: 앞 학생 사진이 다음 학생에게 보이지 않게
 function nextPerson(auto) {
   if (booth.busy) return;
+  resetSession();
   clearInterval(kiosk.timer); kiosk.timer = null; $("idleNote").hidden = true;
   booth.shots = booth.shots.map(() => null);
   const d = kiosk.on && kiosk.defaults;
@@ -2961,7 +3000,7 @@ function nextPerson(auto) {
   }
   booth.resultCanvas = null; booth.resultUrl = null;
   $("resultImg").removeAttribute("src"); $("resultBox").hidden = true; $("printArea").innerHTML = "";
-  resetSession(); switchTab("booth"); setBoothControls(true);
+  switchTab("booth"); setBoothControls(true);
   renderThumbs();
   window.scrollTo({ top: 0, behavior: "smooth" });
   openConsent();
@@ -3030,44 +3069,77 @@ document.addEventListener("keydown", (e) => { if (!$("pinModal").hidden && e.key
 $("lockBtn").onclick = () => openPin(kiosk.on ? "unlock" : "lock");
 
 /* ════════════════ 개인정보 동의 · 사용법 안내 · 제한시간 ════════════════ */
-// 한 사람(한 팀)마다: 동의 → 사용법 → 프레임 만들기 3분 · 촬영 5분 → 인쇄 → 다음 사람
-const LIMIT = { shoot: 5 * 60, frame: 3 * 60 };
-const sess = {};
+// 학생 모드에서 한 사람(한 팀)마다: 동의 → 사용법 → 촬영 3분 → 꾸미기 3분 → 인쇄 → 다음 사람
+// 학생 모드가 꺼져 있으면(선생님) 동의만 받고 시간 제한 없이 자유롭게 써요.
+const LIMIT = { shoot: 3 * 60, decor: 3 * 60 };
 function resetSession() {
-  Object.assign(sess, { shootLeft: LIMIT.shoot, frameLeft: LIMIT.frame, shootStarted: false, shootOver: false, frameOver: false });
-  updateLimitPill();
+  Object.assign(sess, { phase: kiosk.on ? "gate" : "free", shootLeft: LIMIT.shoot, decorLeft: LIMIT.decor, photos: null, shootEnding: false });
+  document.body.dataset.phase = sess.phase;
+  updateLimitPill(); updatePhaseUI();
+}
+function setPhase(p) { sess.phase = p; document.body.dataset.phase = p; updatePhaseUI(); updateLimitPill(); }
+function updatePhaseUI() {
+  const p = sess.phase, all = booth.shots.length > 0 && booth.shots.every(Boolean);
+  $("toDecorBtn").hidden = !(p === "shoot" && all && !sess.shootEnding);
+  $("useBtn").textContent = p === "decor" ? "이 프레임으로 완성 →" : "이 프레임으로 촬영 →";
+  $("resultLead").textContent = p === "shoot" ? "마음에 안 드는 컷은 위의 작은 사진을 눌러 다시 찍을 수 있어요. 다 찍었으면 꾸미러 가요!"
+    : p === "decor" ? "오른쪽에서 프레임·필터를 바꾸거나, 위쪽 프레임 만들기에서 직접 꾸며 보세요."
+    : "저장하거나 바로 인쇄해서 나눠 가지세요.";
+  $("printHint").hidden = p === "shoot" || p === "decor";
+  setBoothControls(!booth.busy);
+  if (!$("resultBox").hidden && booth.resultCanvas) renderOutButtons();
 }
 const gateOpen = () => !$("consentModal").hidden || !$("guideModal").hidden;
 const mmss = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 function updateLimitPill() {
-  const pill = $("limitPill"); if (!pill || sess.shootLeft == null) return;
-  let label = null, left = 0;
-  if (!$("editor").hidden && !sess.frameOver) { label = "프레임 만들기"; left = sess.frameLeft; }
-  else if (!$("booth").hidden && sess.shootStarted && !sess.shootOver) { label = "촬영"; left = sess.shootLeft; }
-  pill.hidden = !label || gateOpen();
-  if (label) { pill.textContent = `⏱ ${label} 남은 시간 ${mmss(left)}`; pill.classList.toggle("warn", left <= 30); }
+  const bar = $("limitPill"); if (!bar) return;
+  const on = (sess.phase === "shoot" || sess.phase === "decor") && !gateOpen();
+  bar.hidden = !on; document.body.classList.toggle("timing", on);
+  if (!on) return;
+  const seg = (id, left, total, state) => {
+    const el = $(id);
+    el.className = "lbSeg " + state + (state === "now" ? (left <= 30 ? " danger" : left <= 60 ? " warn" : "") : "");
+    el.querySelector(".lbTime").textContent = state === "done" ? "끝 ✓" : mmss(Math.max(0, left));
+    el.querySelector(".lbFill").style.width = (state === "done" ? 0 : Math.max(0, left) / total * 100) + "%";
+  };
+  seg("lbShoot", sess.shootLeft, LIMIT.shoot, sess.phase === "shoot" ? "now" : "done");
+  seg("lbDecor", sess.decorLeft, LIMIT.decor, sess.phase === "decor" ? "now" : "wait");
 }
-// 촬영 5분이 끝나면: 남은 컷을 바로 찍고 마무리 (찍는 중이면 그 컷이 끝난 뒤)
-function finishShoot() {
-  sess.shootOver = true; updateLimitPill();
+// 촬영이 끝나면(시간 끝 또는 '꾸미러 가기'): 비어 있는 컷은 바로 찍고 꾸미기로
+function finishShoot(early) {
+  if (sess.phase !== "shoot") return;
+  if (early && !booth.shots.every(Boolean)) return;
+  sess.shootEnding = true; updatePhaseUI();
+  if (booth.busy) return; // 찍는 중이면 그 컷이 끝난 뒤 다시 불림
   const miss = booth.shots.map((s, i) => (s ? -1 : i)).filter((i) => i >= 0);
-  if (booth.busy) return;
-  if (miss.length) { toast("촬영 시간 5분이 끝났어요! 남은 컷을 바로 찍을게요."); runSequence(miss); }
-  else { setBoothControls(false); if ($("resultBox").hidden) compose(); toast("촬영 시간 5분이 끝났어요. 이제 인쇄해 주세요!"); }
+  if (miss.length && booth.stream) { toast("촬영 시간이 끝났어요! 남은 컷을 바로 찍을게요."); runSequence(miss); return; }
+  const got = booth.shots.filter(Boolean);
+  if (!got.length) { nextPerson(true); return; }
+  sess.photos = got; sess.shootEnding = false;
+  booth.shots = fitPhotos(booth.frame);
+  setPhase("decor"); renderThumbs(); compose(); renderFramePick();
+  $("resultBox").scrollIntoView({ behavior: "smooth", block: "start" });
+  toast(early ? "이제 꾸밀 차례예요! 3분 동안 프레임·필터를 바꾸거나 직접 꾸며 보세요." : "촬영 시간이 끝났어요. 이제 3분 동안 꾸며요!");
 }
-// 프레임 만들기 3분이 끝나면: 지금까지 만든 프레임으로 촬영 화면으로
-function finishFrame() {
-  sess.frameOver = true;
+// 꾸미기가 끝나면(시간 끝 또는 '다 꾸몄어요'): 지금 모습으로 완성하고 인쇄로
+function finishDecor(auto) {
+  if (sess.phase !== "decor") return;
   if (!$("fxModal").hidden) $("fxBack").click();
   if (!$("bgrModal").hidden) bgrClose();
-  if (!$("editor").hidden) { boothSetFrame({ ...clone(ed.frame), _draft: true }); switchTab("booth"); }
-  toast("프레임 만들기 시간 3분이 끝났어요. 지금 프레임으로 촬영해요!");
-  updateLimitPill();
+  if (!$("editor").hidden) switchTab("booth");
+  setPhase("print"); compose();
+  $("resultBox").scrollIntoView({ behavior: "smooth", block: "start" });
+  toast(auto ? "꾸미기 시간이 끝났어요. 이제 인쇄해요! 🖨️" : "완성! 이제 인쇄해요. 🖨️");
 }
 setInterval(() => {
-  if (gateOpen() || sess.shootLeft == null) return;
-  if (!$("editor").hidden && !sess.frameOver) { if (--sess.frameLeft <= 0) finishFrame(); }
-  else if (!$("booth").hidden && sess.shootStarted && !sess.shootOver) { if (--sess.shootLeft <= 0) finishShoot(); }
+  if (gateOpen()) return;
+  if (sess.phase === "shoot" && !sess.shootEnding) {
+    if (--sess.shootLeft === 60) toast("📸 촬영 시간이 1분 남았어요!");
+    if (sess.shootLeft <= 0) finishShoot(false);
+  } else if (sess.phase === "decor") {
+    if (--sess.decorLeft === 60) toast("🎨 꾸미기 시간이 1분 남았어요!");
+    if (sess.decorLeft <= 0) finishDecor(true);
+  }
   updateLimitPill();
 }, 1000);
 
@@ -3098,7 +3170,7 @@ function showGuide(i) {
   $("guideSkip").style.visibility = guide.i === guide.n - 1 ? "hidden" : "visible";
 }
 function openGuide() { showGuide(0); $("guideModal").hidden = false; updateLimitPill(); }
-function closeGuide() { $("guideModal").hidden = true; updateLimitPill(); }
+function closeGuide() { $("guideModal").hidden = true; if (sess.phase === "gate") setPhase("shoot"); updateLimitPill(); }
 $("guidePrev").onclick = () => showGuide(guide.i - 1);
 $("guideNext").onclick = () => (guide.i === guide.n - 1 ? closeGuide() : showGuide(guide.i + 1));
 $("guideSkip").onclick = closeGuide;
@@ -3118,10 +3190,13 @@ resetSession();
 
 /* ════════════════ 탭 전환·시작 ════════════════ */
 function switchTab(tab) {
-  if (tab === "editor" && (sess.frameOver || sess.shootOver)) {
-    toast(sess.frameOver ? "프레임 만들기 시간(3분)이 끝났어요. 지금 프레임으로 촬영해 주세요." : "촬영이 끝나서 프레임을 바꿀 수 없어요.");
+  if (tab === "editor" && (sess.phase === "shoot" || sess.phase === "print")) {
+    toast(sess.phase === "shoot" ? "먼저 사진을 찍어요! 꾸미기는 촬영이 끝난 다음이에요." : "꾸미기 시간이 끝났어요. 이제 인쇄해 주세요.");
     return false;
   }
+  const fromEditor = !$("editor").hidden;
+  if (sess.phase === "decor" && tab === "booth" && fromEditor) boothSetFrame({ ...clone(ed.frame), _draft: true });
+  if (sess.phase === "decor" && tab === "editor" && !fromEditor) loadIntoEditor(booth.frame);
   document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
   $("booth").hidden = tab !== "booth"; $("editor").hidden = tab !== "editor";
   document.body.classList.toggle("tab-editor", tab === "editor");
@@ -3147,7 +3222,7 @@ renderBgPick();
 { const id = store.get("m4c.boothFilter", "none"); booth.filter = clone(allFilters().find((f) => f.id === id) || PRESET_FILTERS[0]); renderFilterPick(); refreshLive(); }
 loadFonts();
 // 새로고침해도 학생 모드는 그대로
-{ const k = store.get("m4c.kiosk", null); if (k) { kiosk.idle = k.idle ?? 90; if (k.on) { kiosk.defaults = k; applyKiosk(true); } } }
+{ const k = store.get("m4c.kiosk", null); if (k) { kiosk.idle = k.idle ?? 90; if (k.on) { kiosk.defaults = k; applyKiosk(true); } } resetSession(); }
 // 홈 화면 앱·오프라인 사용 (웹 주소로 열었을 때만)
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("sw.js").then((reg) => {
