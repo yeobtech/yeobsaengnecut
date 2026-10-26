@@ -1,0 +1,17 @@
+{
+  "name": "우리집 네컷",
+  "short_name": "네컷",
+  "description": "사진이 기기 밖으로 나가지 않는 네컷 사진 촬영·프레임 만들기",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f4f0",
+  "theme_color": "#e8546b",
+  "lang": "ko",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
