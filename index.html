@@ -96,7 +96,7 @@
     display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px;
     padding: 16px 20px 28px; max-width: 1260px; margin: 0 auto;
   }
-  @media (max-width: 920px) { #booth main { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { #booth main { grid-template-columns: 1fr; } }
   .stage {
     position: relative; background: #000; border-radius: 10px; overflow: hidden;
     aspect-ratio: var(--ar, 4/3); width: min(100%, calc(62vh * var(--ar, 1.333))); margin: 0 auto;
@@ -140,11 +140,17 @@
   }
   @media (max-width: 1240px) { #editor .work { grid-template-columns: 290px minmax(0, 1fr) 260px; gap: 10px; padding: 10px 12px 16px; } #editor .bar { padding: 8px 12px; } }
   @media (max-width: 999px) {
-    #editor .work { grid-template-columns: 1fr 1fr; grid-template-rows: 58dvh 46dvh; height: auto; }
-    #editor .center { grid-column: 1 / -1; order: -1; }
+    #editor .work { grid-template-columns: minmax(0, 1fr) 340px; grid-template-rows: minmax(0, 3fr) minmax(0, 2fr); height: calc(100dvh - 140px); min-height: 640px; }
+    #editor .center { grid-column: 1; grid-row: 1 / 3; }
+    #editor .left { grid-column: 2; grid-row: 1; }
+    #editor .right { grid-column: 2; grid-row: 2; }
     .left, .right { min-height: 0; }
   }
-  @media (max-width: 640px) { #editor .work { grid-template-columns: 1fr; grid-template-rows: 55dvh auto auto; } .left, .right { height: 60dvh; } }
+  @media (max-width: 640px) {
+    #editor .work { grid-template-columns: 1fr; grid-template-rows: 55dvh auto auto; height: auto; min-height: 0; }
+    #editor .center, #editor .left, #editor .right { grid-column: 1; grid-row: auto; }
+    .left, .right { height: 60dvh; }
+  }
   /* 손가락으로 쓰는 기기 */
   @media (pointer: coarse) {
     .btn { padding: 11px 14px; } .btn.sm { padding: 9px 11px; font-size: 13px; }
@@ -383,7 +389,14 @@
 
   body { word-break: keep-all; overflow-wrap: anywhere; }
   #booth main { align-items: start; }
-  @media (max-width: 920px) {
+  /* 아이패드 세로(761~999px): 카메라·사진 옆에 꾸미기 도구 */
+  @media (min-width: 761px) and (max-width: 999px) {
+    #booth main { grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; }
+    .intro { padding-top: 20px; padding-bottom: 14px; }
+    .meta { display: none; }
+    .framepick { max-height: 46vh; }
+  }
+  @media (max-width: 760px) {
     #booth main { grid-template-columns: 1fr; }
     .framepick { grid-template-columns: repeat(3, 1fr); max-height: none; }
   }
@@ -494,6 +507,14 @@
   /* 꾸미기 단계: 다시 찍기·배경 바꾸기 잠금 / 인쇄 단계: 고르기도 잠금 */
   body[data-phase=decor] .bgGroup, body[data-phase=print] .bgGroup, body[data-phase=print] .frameGroup, body[data-phase=print] .filterGroup { opacity: .4; pointer-events: none; }
   body[data-phase=decor] .thumbs, body[data-phase=print] .thumbs { pointer-events: none; }
+  body[data-phase=decor] .hero > :not(.heroResult), body[data-phase=print] .hero > :not(.heroResult),
+  body[data-phase=decor] #resultBox, body[data-phase=print] #resultBox { display: none !important; }
+  .heroResult { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .heroResult img { display: block; max-width: 100%; max-height: 64vh; background: #fff; border-radius: 2px; box-shadow: 0 18px 50px rgba(13, 30, 110, .35); }
+  .heroSide { width: 100%; }
+  .heroSide p { margin: 0 0 12px; font-family: var(--serif); font-size: 15px; line-height: 1.55; color: #fff; }
+  .heroSide .hint, .heroSide .idleNote, .heroSide .idleNote b { color: rgba(255,255,255,.85); font-family: var(--sans); }
+  .heroSide .row { margin-top: 0 !important; }
   .helpBtn { padding: 7px 11px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
   @media print { .limitBar, .modal.gate { display: none !important; } }
 </style>
@@ -528,6 +549,7 @@
         <div class="count" id="count"></div>
         <div class="flash" id="flash"></div>
       </div>
+      <div class="heroResult" id="heroResult" hidden><img id="heroImg" alt="완성된 네컷 사진"><div class="heroSide" id="heroSide"></div></div>
       <div class="thumbs" id="thumbs"></div>
       <div class="row" style="margin-top:12px">
         <button class="btn primary" id="startBtn" disabled>촬영 시작</button>
@@ -1698,7 +1720,7 @@ function compose() {
   renderFrame(c.getContext("2d"), booth.frame, { photos: booth.shots, filter: booth.filter });
   booth.resultCanvas = c;
   booth.resultUrl = c.toDataURL("image/png");
-  $("resultImg").src = booth.resultUrl;
+  $("resultImg").src = booth.resultUrl; $("heroImg").src = booth.resultUrl;
   const first = $("resultBox").hidden;
   $("resultBox").hidden = false;
   if (first) $("resultBox").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2999,7 +3021,7 @@ function nextPerson(auto) {
     if (bg && booth.bgId !== d.bgId && bg.id !== "image") setBoothBg(bg);
   }
   booth.resultCanvas = null; booth.resultUrl = null;
-  $("resultImg").removeAttribute("src"); $("resultBox").hidden = true; $("printArea").innerHTML = "";
+  $("resultImg").removeAttribute("src"); $("heroImg").removeAttribute("src"); $("resultBox").hidden = true; $("printArea").innerHTML = "";
   switchTab("booth"); setBoothControls(true);
   renderThumbs();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -3010,6 +3032,8 @@ function nextPerson(auto) {
 function kioskArm() {
   clearInterval(kiosk.timer); kiosk.timer = null; $("idleNote").hidden = true;
   if (!kiosk.on || !kiosk.idle || !(booth.shots.some(Boolean) || !$("resultBox").hidden)) return;
+  // 촬영·꾸미기 중에는 위쪽 제한시간이 대신 넘겨 줌 (인쇄 단계에서만 자리 비움 확인)
+  if (sess.phase === "shoot" || sess.phase === "decor") return;
   kiosk.left = kiosk.idle;
   const show = () => {
     const note = $("idleNote"); note.hidden = $("resultBox").hidden;
@@ -3086,6 +3110,11 @@ function updatePhaseUI() {
     : p === "decor" ? "오른쪽에서 프레임·필터를 바꾸거나, 위쪽 프레임 만들기에서 직접 꾸며 보세요."
     : "저장하거나 바로 인쇄해서 나눠 가지세요.";
   $("printHint").hidden = p === "shoot" || p === "decor";
+  // 꾸미기·인쇄 단계에서는 안내문·버튼을 파란 상자 안 완성 사진 아래로 옮김
+  const inHero = p === "decor" || p === "print";
+  $("heroResult").hidden = !inHero;
+  const dest = inHero ? $("heroSide") : $("resultBox").querySelector(".side");
+  ["resultLead", "outBtns", "idleNote", "printHint"].forEach((id) => dest.appendChild($(id)));
   setBoothControls(!booth.busy);
   if (!$("resultBox").hidden && booth.resultCanvas) renderOutButtons();
 }
@@ -3118,7 +3147,7 @@ function finishShoot(early) {
   sess.photos = got; sess.shootEnding = false;
   booth.shots = fitPhotos(booth.frame);
   setPhase("decor"); renderThumbs(); compose(); renderFramePick();
-  $("resultBox").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("heroResult").closest(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
   toast(early ? "이제 꾸밀 차례예요! 3분 동안 프레임·필터를 바꾸거나 직접 꾸며 보세요." : "촬영 시간이 끝났어요. 이제 3분 동안 꾸며요!");
 }
 // 꾸미기가 끝나면(시간 끝 또는 '다 꾸몄어요'): 지금 모습으로 완성하고 인쇄로
@@ -3127,8 +3156,8 @@ function finishDecor(auto) {
   if (!$("fxModal").hidden) $("fxBack").click();
   if (!$("bgrModal").hidden) bgrClose();
   if (!$("editor").hidden) switchTab("booth");
-  setPhase("print"); compose();
-  $("resultBox").scrollIntoView({ behavior: "smooth", block: "start" });
+  setPhase("print"); compose(); kioskArm();
+  $("heroResult").closest(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
   toast(auto ? "꾸미기 시간이 끝났어요. 이제 인쇄해요! 🖨️" : "완성! 이제 인쇄해요. 🖨️");
 }
 setInterval(() => {
