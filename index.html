@@ -175,7 +175,17 @@
     background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 18px 18px;
     display: grid; place-items: center; padding: 24px;
   }
-  #edCanvas { box-shadow: 0 6px 30px rgba(0,0,0,.18); touch-action: none; cursor: default; display: block; }
+  #edCanvas { box-shadow: 0 6px 30px rgba(0,0,0,.18); touch-action: none; cursor: default; display: block; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  /* 꾹 누르면 뜨는 메뉴 */
+  .elMenu { position: fixed; z-index: 45; display: flex; flex-direction: column; min-width: 180px; padding: 6px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line);
+    box-shadow: 0 14px 40px rgba(0,0,0,.22); animation: elPop .14s ease-out; }
+  .elMenu button { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 16px; border: 0; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; }
+  .elMenu button:hover, .elMenu button:active { background: var(--soft); }
+  .elMenu button.danger { color: #e03131; }
+  .elMenu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+  @keyframes elPop { from { opacity: 0; transform: scale(.92); } }
+  .lpRing { position: fixed; z-index: 44; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; border: 3px solid var(--pop); pointer-events: none; opacity: 0; transform: scale(.4); }
+  .lpRing.on { transition: transform .5s linear, opacity .15s; opacity: .9; transform: scale(1); }
   .zoombar { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .zoombar .grow { flex: 1; }
   .tilegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -806,6 +816,14 @@
 
 <div id="printArea"></div>
 <div class="toast" id="toast"></div>
+<div class="elMenu" id="elMenu" role="menu" hidden>
+  <button data-m="del" class="danger" role="menuitem">🗑 삭제</button>
+  <button data-m="dup" role="menuitem">⧉ 복제</button>
+  <button data-m="front" role="menuitem">⬆ 맨 앞으로</button>
+  <hr>
+  <button data-m="close" role="menuitem">닫기</button>
+</div>
+<div class="lpRing" id="lpRing"></div>
 <div class="limitBar" id="limitPill" hidden aria-live="polite">
   <div class="lbSeg" id="lbShoot"><span class="lbName">📸 촬영</span><b class="lbTime">3:00</b><i class="lbFill"></i></div>
   <span class="lbArrow">→</span>
@@ -2079,6 +2097,7 @@ cv.addEventListener("pointerdown", (e) => {
   touches.set(e.pointerId, p);
   // 두 손가락: 선택한 요소를 벌려서 키우고 돌리기
   if (touches.size === 2) {
+    cancelLongPress();
     const el = selEl();
     if (el && !el.locked) {
       const pi = pinchInfo();
@@ -2094,6 +2113,7 @@ cv.addEventListener("pointerdown", (e) => {
     if (el) { if (ed.sel !== el.id) { ed.sel = el.id; refreshRight(); } mode = el.locked ? null : "move"; }
     else { ed.sel = null; refreshRight(); draw(); return; }
   }
+  if (el && (mode === "move" || !mode)) startLongPress(e, el);
   if (!mode) { draw(); return; }
   const box = elBox(el);
   ed.drag = { mode, el, start: p, orig: { x: el.x, y: el.y, size: el.size, w: el.w, h: el.h, rot: el.rot || 0, bw: box.w, bh: box.h }, moved: false };
@@ -2102,6 +2122,7 @@ cv.addEventListener("pointerdown", (e) => {
 cv.addEventListener("pointermove", (e) => {
   const p = toCanvas(e);
   if (touches.has(e.pointerId)) touches.set(e.pointerId, p);
+  if (lp && Math.hypot(e.clientX - lp.x, e.clientY - lp.y) > 10) cancelLongPress();
   if (ed.drag?.mode === "pinch") {
     if (touches.size < 2) return;
     const d = ed.drag, el = d.el, o = d.orig, pi = pinchInfo(), k = Math.max(0.05, pi.d / (d.d0 || 1));
@@ -2155,6 +2176,7 @@ cv.addEventListener("pointermove", (e) => {
   draw();
 });
 function endDrag(e) {
+  cancelLongPress();
   if (e) touches.delete(e.pointerId);
   if (ed.drag?.mode === "pinch" && touches.size) return;
   if (!ed.drag) return;
@@ -2168,6 +2190,51 @@ cv.addEventListener("pointercancel", endDrag);
 cv.addEventListener("dblclick", () => {
   const el = selEl();
   if (el?.type === "text") { ed.rightTab = "props"; refreshRight(); const t = document.querySelector('#rightPanel [data-k="text"]'); t?.focus(); t?.select(); }
+});
+
+/* 꾹 누르기(0.5초) 또는 오른쪽 클릭: 삭제·복제 메뉴 — 아이패드에서 쉽게 지우기 */
+let lp = null;
+function startLongPress(e, el) {
+  cancelLongPress();
+  lp = { id: el.id, x: e.clientX, y: e.clientY, timer: setTimeout(fireLongPress, 500) };
+  const ring = $("lpRing"); ring.style.left = e.clientX + "px"; ring.style.top = e.clientY + "px";
+  requestAnimationFrame(() => lp && ring.classList.add("on"));
+}
+function cancelLongPress() {
+  if (lp) { clearTimeout(lp.timer); lp = null; }
+  $("lpRing").classList.remove("on");
+}
+function fireLongPress() {
+  const { id, x, y } = lp; cancelLongPress();
+  // 누르는 동안 살짝 움직였으면 제자리로
+  const d = ed.drag;
+  if (d && d.el.id === id && d.mode === "move") { d.el.x = d.orig.x; d.el.y = d.orig.y; }
+  ed.drag = null; ed.guides = [];
+  ed.sel = id; refreshRight(); draw();
+  navigator.vibrate?.(30);
+  openElMenu(x, y);
+}
+function openElMenu(x, y) {
+  const m = $("elMenu"); m.hidden = false;
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.max(8, Math.min(x + 8, innerWidth - r.width - 8)) + "px";
+  m.style.top = Math.max(8, Math.min(y + 8, innerHeight - r.height - 8)) + "px";
+}
+const closeElMenu = () => { $("elMenu").hidden = true; };
+$("elMenu").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-m]"); if (!b) return;
+  const m = b.dataset.m; closeElMenu();
+  if (m === "del") { deleteSel(); toast("지웠어요. 실수였다면 ↶ 실행 취소를 누르세요."); }
+  else if (m === "dup") duplicateSel();
+  else if (m === "front") reorder("front");
+});
+document.addEventListener("pointerdown", (e) => { if (!$("elMenu").hidden && !$("elMenu").contains(e.target)) closeElMenu(); }, true);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("elMenu").hidden) closeElMenu(); });
+addEventListener("scroll", closeElMenu, { passive: true });
+cv.addEventListener("contextmenu", (e) => {
+  e.preventDefault();
+  const el = hitTest(toCanvas(e)); if (!el) return;
+  cancelLongPress(); ed.drag = null; ed.sel = el.id; refreshRight(); draw(); openElMenu(e.clientX, e.clientY);
 });
 
 /* 요소 추가·조작 */
@@ -2516,7 +2583,7 @@ function refreshRight() {
   const el = selEl();
   if (!el) {
     p.innerHTML = `<div class="empty"><div style="font-size:30px">👆</div><b>고칠 요소를 골라 주세요</b><br>
-      캔버스에서 글자나 스티커를 누르면 여기서 글꼴·색·크기를 바꿀 수 있어요. 겹쳐 있으면 레이어 탭에서 고르세요.</div>
+      캔버스에서 글자나 스티커를 누르면 여기서 글꼴·색·크기를 바꿀 수 있어요. 겹쳐 있으면 레이어 탭에서 고르세요.<br><b>꾹 누르면</b> 삭제·복제 메뉴가 나와요.</div>
       <h3 class="kbd-only">단축키</h3><p class="hint kbd-only">Ctrl+Z 실행 취소 · Ctrl+Y 다시 실행<br>Delete 삭제 · Ctrl+D 복제 · Ctrl+C/V 복사/붙여넣기<br>방향키 1px 이동 (Shift: 10px) · Esc 선택 해제<br>회전 중 Shift: 15° 단위 · 이동 중 Alt: 맞춤선 끄기</p>`;
     return;
   }
