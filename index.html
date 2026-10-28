@@ -515,7 +515,8 @@
   body.timing #editor .work { height: calc(100dvh - 174px); }
   @media (max-width: 560px) { .lbSeg { min-width: 0; padding: 7px 11px 10px; gap: 6px; } .lbSeg .lbName { font-size: 12.5px; } .lbSeg .lbTime { font-size: 18px; } }
   /* 꾸미기 단계: 다시 찍기·배경 바꾸기 잠금 / 인쇄 단계: 고르기도 잠금 */
-  body[data-phase=decor] .bgGroup, body[data-phase=print] .bgGroup, body[data-phase=print] .frameGroup, body[data-phase=print] .filterGroup { opacity: .4; pointer-events: none; }
+  body[data-phase=decor] .bgGroup, body[data-phase=print] .bgGroup { display: none; }
+  body[data-phase=print] .frameGroup, body[data-phase=print] .filterGroup { opacity: .4; pointer-events: none; }
   body[data-phase=decor] .thumbs, body[data-phase=print] .thumbs { pointer-events: none; }
   body[data-phase=decor] .hero > :not(.heroResult), body[data-phase=print] .hero > :not(.heroResult),
   body[data-phase=decor] #resultBox, body[data-phase=print] #resultBox { display: none !important; }
@@ -525,6 +526,20 @@
   .heroSide p { margin: 0 0 12px; font-family: var(--serif); font-size: 15px; line-height: 1.55; color: #fff; }
   .heroSide .hint, .heroSide .idleNote, .heroSide .idleNote b { color: rgba(255,255,255,.85); font-family: var(--sans); }
   .heroSide .row { margin-top: 0 !important; }
+  /* 크기 고르기 창 */
+  .layoutBox { width: min(760px, 100%); }
+  .layoutPick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+  @media (max-width: 560px) { .layoutPick { grid-template-columns: repeat(2, 1fr); } }
+  .layoutPick button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 10px 12px; border: 2px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--text); font: inherit; cursor: pointer; transition: border-color .15s, transform .15s; }
+  .layoutPick button:hover, .layoutPick button:active { border-color: var(--text); transform: translateY(-2px); }
+  .layoutPick canvas { height: 150px; width: auto; max-width: 100%; box-shadow: 0 4px 14px rgba(0,0,0,.18); border-radius: 2px; }
+  .layoutPick b { font-size: 16px; }
+  .layoutPick em { font-style: normal; font-size: 12.5px; color: var(--muted); }
+  /* 촬영 단계: 프레임 디자인은 숨기고 고른 크기만 */
+  .sizeNow { display: none; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--soft); }
+  .sizeNow b { font-size: 16px; flex: 1; }
+  body[data-phase=shoot] .sizeNow { display: flex; }
+  body[data-phase=shoot] #framePick, body[data-phase=shoot] #toEditor { display: none !important; }
   .helpBtn { padding: 7px 11px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
   @media print { .limitBar, .modal.gate { display: none !important; } }
 </style>
@@ -572,6 +587,7 @@
     <aside class="settings" aria-label="촬영 설정">
       <div class="group frameGroup">
         <div class="ghead"><h2>프레임</h2><button class="chip" id="toEditor" style="border:0;cursor:pointer">직접 만들기 →</button></div>
+        <div class="sizeNow" id="sizeNow"><b id="sizeName">세로 4컷</b><button class="btn sm" id="relayoutBtn">크기 바꾸기</button></div>
         <div class="framepick" id="framePick"></div>
       </div>
 
@@ -854,6 +870,16 @@
 </div>
 
 <!-- 사용법 안내 (넘기면서 보기) -->
+<!-- 1단계: 사진 크기 고르기 -->
+<div class="modal gate" id="layoutModal" hidden>
+  <div class="modalBox gateBox layoutBox" role="dialog" aria-modal="true" aria-labelledby="layoutTitle">
+    <span class="chip">1단계 · 크기 고르기</span>
+    <h2 id="layoutTitle">어떤 크기로 찍을까요?</h2>
+    <p>고른 크기에 맞춰 사진을 찍고, 찍은 다음에 내 사진으로 프레임을 꾸며요.</p>
+    <div class="layoutPick" id="layoutPick"></div>
+  </div>
+</div>
+
 <div class="modal gate" id="guideModal" hidden>
   <div class="modalBox gateBox" role="dialog" aria-modal="true" aria-label="사용법 안내">
     <div class="guideStep" data-step="0">
@@ -861,8 +887,9 @@
       <div class="guideIcon">👋</div>
       <h2>이렇게 진행돼요</h2>
       <ol>
-        <li><b>찍기</b> · 네 컷 촬영 <span class="time">3분</span></li>
-        <li><b>꾸미기</b> · 프레임·필터 고르고 직접 꾸미기 <span class="time">3분</span></li>
+        <li><b>크기 고르기</b> · 세로 4컷, 2×2 같은 사진 크기</li>
+        <li><b>찍기</b> · 고른 크기대로 촬영 <span class="time">3분</span></li>
+        <li><b>꾸미기</b> · 내 사진으로 프레임·필터 고르고 직접 꾸미기 <span class="time">3분</span></li>
         <li><b>인쇄</b> · 완성된 사진 뽑기</li>
       </ol>
       <p>남은 시간은 화면 <b>맨 위</b>에 크게 보여요. 1분 남으면 주황색, 30초 남으면 빨간색으로 바뀌어요.</p>
@@ -872,7 +899,8 @@
       <div class="guideIcon">📸</div>
       <h2>찍기</h2>
       <ol>
-        <li>오른쪽에서 <b>프레임</b>과 <b>배경</b>을 먼저 골라요. 배경 바꾸기는 찍기 전에만 돼요.</li>
+        <li>처음에 고른 <b>크기</b>대로 찍어요. 찍기 전에는 오른쪽 <b>크기 바꾸기</b>로 바꿀 수 있어요.</li>
+        <li><b>배경 바꾸기</b>는 찍기 전에만 돼요.</li>
         <li><b>촬영 시작</b>을 누르면 숫자를 세고 한 컷씩 찍어요.</li>
         <li>마음에 안 드는 컷은 아래 <b>작은 사진</b>을 눌러 그 컷만 다시 찍어요.</li>
         <li>다 찍었으면 <b>꾸미러 가기 →</b>를 눌러요.</li>
@@ -884,7 +912,7 @@
       <div class="guideIcon">🎨</div>
       <h2>꾸미기</h2>
       <ol>
-        <li><b>프레임</b>과 <b>필터</b>를 바꾸면 내 사진에 바로 적용돼요.</li>
+        <li>오른쪽 <b>프레임</b>에 내 사진이 들어간 디자인이 보여요. 마음에 드는 걸 고르고, <b>필터</b>도 바꿔 봐요.</li>
         <li>위쪽 <b>프레임 만들기</b>에서 스티커·글자로 직접 꾸며요. 다 꾸몄으면 <b>이 프레임으로 완성 →</b>을 눌러요.</li>
         <li>끝나면 <b>다 꾸몄어요 · 인쇄하기 →</b>를 눌러요.</li>
       </ol>
@@ -1512,14 +1540,18 @@ function capTile(name, kind) {
 }
 function renderFramePick() {
   const box = $("framePick"); box.innerHTML = "";
-  const list = allFrames();
+  let list = allFrames();
   const draft = store.get("m4c.draft", null);
   if (draft) list.unshift({ ...draft, _draft: true });
+  // 꾸미기·인쇄 단계: 찍은 크기와 같은 프레임만, 내 사진을 넣어서 보여 줌
+  const mine = !!sess.photos;
+  if (mine) list = [{ ...newFrame(sess.layout), id: "plain-" + sess.layout, name: "기본 흰색" }, ...list.filter((f) => f.layout === sess.layout)];
   list.forEach((f, i) => {
     const b = document.createElement("button");
     const on = booth.frame && (booth.frame.id === f.id) && !!booth.frame._draft === !!f._draft;
     b.setAttribute("aria-pressed", on);
-    b.append(artTile(frameThumb(f, 110, { sample: true }), i), capTile((f._draft ? "편집 중 · " : "") + f.name, LAYOUTS[f.layout].name));
+    const thumb = frameThumb(f, 110, mine ? { photos: fitPhotos(f), filter: booth.filter } : { sample: true });
+    b.append(artTile(thumb, i), capTile((f._draft ? "편집 중 · " : "") + f.name, LAYOUTS[f.layout].name));
     b.title = `${f.name} · ${LAYOUTS[f.layout].name}`;
     b.onclick = () => boothSetFrame(f);
     box.appendChild(b);
@@ -1799,6 +1831,7 @@ bindSeg($("faceSeg"), (v) => {
 function setBoothFilter(f) {
   booth.filter = clone(f); store.set("m4c.boothFilter", booth.filter.id);
   renderFilterPick(); renderThumbs(); compose(); refreshLive();
+  if (sess.photos) renderFramePick();
 }
 function renderFilterPick() {
   const box = $("filterPick"); box.innerHTML = "";
@@ -3185,7 +3218,7 @@ function updatePhaseUI() {
   setBoothControls(!booth.busy);
   if (!$("resultBox").hidden && booth.resultCanvas) renderOutButtons();
 }
-const gateOpen = () => !$("consentModal").hidden || !$("guideModal").hidden;
+const gateOpen = () => !$("consentModal").hidden || !$("guideModal").hidden || !$("layoutModal").hidden;
 const mmss = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 function updateLimitPill() {
   const bar = $("limitPill"); if (!bar) return;
@@ -3211,7 +3244,7 @@ function finishShoot(early) {
   if (miss.length && booth.stream) { toast("촬영 시간이 끝났어요! 남은 컷을 바로 찍을게요."); runSequence(miss); return; }
   const got = booth.shots.filter(Boolean);
   if (!got.length) { nextPerson(true); return; }
-  sess.photos = got; sess.shootEnding = false;
+  sess.photos = got; sess.shootEnding = false; sess.layout = booth.frame.layout;
   booth.shots = fitPhotos(booth.frame);
   setPhase("decor"); renderThumbs(); compose(); renderFramePick();
   $("heroResult").closest(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -3266,7 +3299,34 @@ function showGuide(i) {
   $("guideSkip").style.visibility = guide.i === guide.n - 1 ? "hidden" : "visible";
 }
 function openGuide() { showGuide(0); $("guideModal").hidden = false; updateLimitPill(); }
-function closeGuide() { $("guideModal").hidden = true; if (sess.phase === "gate") setPhase("shoot"); updateLimitPill(); }
+function closeGuide() { $("guideModal").hidden = true; if (sess.phase === "gate") openLayout(); updateLimitPill(); }
+// 1단계: 크기 고르기 (선생님이 정해 둔 프레임이 같은 크기면 그걸로, 아니면 그 크기의 첫 프레임)
+function openLayout() {
+  const box = $("layoutPick"); box.innerHTML = "";
+  for (const [key, L] of Object.entries(LAYOUTS)) {
+    const b = document.createElement("button");
+    b.append(frameThumb(newFrame(key), 150, { sample: true }));
+    b.insertAdjacentHTML("beforeend", `<b>${esc(L.name)}</b><em>${L.cols * L.rows}컷 · ${esc(L.sub)}</em>`);
+    b.onclick = () => chooseLayout(key);
+    box.appendChild(b);
+  }
+  $("layoutModal").hidden = false; updateLimitPill();
+}
+function chooseLayout(key) {
+  $("layoutModal").hidden = true;
+  const d = kiosk.on && kiosk.defaults;
+  const def = d && (d.draft ? store.get("m4c.draft", null) : allFrames().find((x) => x.id === d.frameId));
+  const f = def?.layout === key ? (d.draft ? { ...def, _draft: true } : def) : allFrames().find((x) => x.layout === key) || { ...newFrame(key), name: "기본 흰색" };
+  boothSetFrame(f);
+  $("sizeName").textContent = `${LAYOUTS[key].name} · ${LAYOUTS[key].sub}`;
+  if (sess.phase === "gate") setPhase("shoot"); else updateLimitPill();
+  toast(`${LAYOUTS[key].name}로 찍어요. 촬영 시작을 눌러 주세요!`);
+}
+$("relayoutBtn").onclick = () => {
+  if (sess.phase !== "shoot" || booth.busy) return;
+  if (booth.shots.some(Boolean)) { toast("이미 찍기 시작해서 크기를 바꿀 수 없어요. 처음부터를 누르면 바꿀 수 있어요."); return; }
+  openLayout();
+};
 $("guidePrev").onclick = () => showGuide(guide.i - 1);
 $("guideNext").onclick = () => (guide.i === guide.n - 1 ? closeGuide() : showGuide(guide.i + 1));
 $("guideSkip").onclick = closeGuide;
