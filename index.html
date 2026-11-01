@@ -155,7 +155,7 @@
   @media (pointer: coarse) {
     .btn { padding: 11px 14px; } .btn.sm { padding: 9px 11px; font-size: 13px; }
     input[type=range] { height: 30px; } input[type=checkbox] { width: 20px; height: 20px; }
-    .emojis button { font-size: 30px; padding: 8px 0; }
+    .stickers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .vtabs button { padding: 12px 2px; }
     .kbd-only { display: none; }
     .layers .ly { padding: 11px 10px; } .layers .ly button { font-size: 18px; padding: 4px 8px; }
@@ -193,9 +193,10 @@
   .tile:hover { border-color: var(--muted); }
   .tile[aria-pressed=true] { outline: 2px solid var(--accent); outline-offset: -2px; }
   .tile canvas { height: 96px; width: auto; max-width: 100%; display: block; border-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-  .emojis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
-  .emojis button { font-size: 24px; padding: 6px 0; border-radius: 8px; border: 1px solid transparent; background: transparent; cursor: pointer; font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; }
-  .emojis button:hover { background: var(--soft); border-color: var(--line); }
+  .stickers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+  .stickers button { position: relative; min-width: 0; min-height: 0; overflow: hidden; aspect-ratio: 1; padding: 0; border-radius: 10px; border: 1px solid transparent; background: transparent; cursor: pointer; }
+  .stickers button:hover, .stickers button:active { background: var(--soft); border-color: var(--line); }
+  .stickers img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); object-fit: contain; display: block; pointer-events: none; -webkit-user-drag: none; }
   .shapes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .shapes button { padding: 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; color: var(--text); font: inherit; font-size: 11px; }
   .shapes canvas { width: 100%; height: auto; display: block; }
@@ -526,6 +527,26 @@
   .heroSide p { margin: 0 0 12px; font-family: var(--serif); font-size: 15px; line-height: 1.55; color: #fff; }
   .heroSide .hint, .heroSide .idleNote, .heroSide .idleNote b { color: rgba(255,255,255,.85); font-family: var(--sans); }
   .heroSide .row { margin-top: 0 !important; }
+  /* 꾸미기: 직접 꾸미기 버튼을 크게 / 인쇄: 다음 사람 버튼을 크게 */
+  body[data-phase=decor] #heroSide #outBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  body[data-phase=decor] #heroSide #outBtns .btn { min-height: 64px; font-size: 17px; justify-content: center; text-align: center; }
+  .hero .btn.makeBig { background: #ffd23f; color: #161414; border-color: #ffd23f; font-weight: 700; }
+  .hero .btn.makeBig:hover:not(:disabled) { background: #fff; border-color: #fff; color: #161414; }
+  body[data-phase=decor] #toEditor { padding: 9px 16px; font-size: 14px; letter-spacing: 0; background: #ffd23f; color: #161414; font-weight: 700; }
+  .nextGroup { display: none; }
+  body[data-phase=print] .nextGroup { display: block; }
+  .nextGroup .btn { width: 100%; min-height: 96px; font-size: 22px; font-weight: 700; border-radius: 22px; }
+  .nextGroup .hint { margin: 10px 0 0; }
+  /* 사진 고르기 창 */
+  .pickBox { width: min(760px, 100%); }
+  .pickGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .pickGrid button { position: relative; padding: 0; border: 4px solid transparent; border-radius: 14px; overflow: hidden; background: var(--soft); cursor: pointer; }
+  .pickGrid button canvas { display: block; width: 100%; height: auto; opacity: .45; transition: opacity .15s; }
+  .pickGrid button.on { border-color: var(--pop); }
+  .pickGrid button.on canvas { opacity: 1; }
+  .pickGrid button i { position: absolute; top: 8px; left: 8px; width: 34px; height: 34px; border-radius: 99px; display: grid; place-items: center;
+    background: rgba(0,0,0,.45); color: #fff; font-style: normal; font-weight: 800; font-size: 17px; }
+  .pickGrid button.on i { background: var(--pop); }
   /* 크기 고르기 창 */
   .layoutBox { width: min(760px, 100%); }
   .layoutPick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
@@ -623,6 +644,11 @@
         <div class="filterpick" id="filterPick"></div>
       </div>
 
+      <div class="group nextGroup">
+        <button class="btn primary" id="nextBig">다음 사람 →</button>
+        <p class="hint">인쇄가 끝났으면 눌러 주세요. 내 사진은 화면에서 지워져요.</p>
+      </div>
+
       <div class="group bgGroup">
         <div class="ghead"><h2>배경 바꾸기</h2><span class="chip">AI · 기기 안에서 처리</span></div>
         <div class="bgpick" id="bgPick"></div>
@@ -639,7 +665,7 @@
       <p id="resultLead">저장하거나 바로 인쇄해서 나눠 가지세요.</p>
       <div class="row" id="outBtns"></div>
       <p class="idleNote" id="idleNote" hidden></p>
-      <p class="hint" id="printHint" style="margin-top:16px"><b>프린터: Canon SELPHY CP1500 (엽서 크기 용지)</b><br>PC: <b>인쇄 · 4×6에 2장</b> → 프린터 <b>Canon SELPHY CP1500</b>, 용지 <b>엽서(100×148mm)</b>, <b>테두리 없음</b>, 배율 <b>100%(실제 크기)</b><br>아이패드·아이폰: <b>공유·저장</b> → <b>프린트</b>(AirPrint) → SELPHY CP1500<br>안드로이드: <b>PNG 저장</b> → 갤러리에서 <b>인쇄</b>(Mopria) 또는 <b>Canon SELPHY</b> 앱</p>
+      <p class="hint" id="printHint" style="margin-top:16px"><b>프린터: Canon SELPHY CP1500 (엽서 크기 용지)</b><br>PC: <b>인쇄 · 4×6에 2장</b> → 프린터 <b>Canon SELPHY CP1500</b>, 용지 <b>엽서(100×148mm)</b>, <b>테두리 없음</b>, 배율 <b>100%(실제 크기)</b><br>아이패드·아이폰: <b>공유·저장</b> → <b>프린트</b>(AirPrint) → SELPHY CP1500<br>안드로이드: <b>파일로 저장</b> → 갤러리에서 <b>인쇄</b>(Mopria) 또는 <b>Canon SELPHY</b> 앱</p>
     </div>
   </section>
 </section>
@@ -869,6 +895,17 @@
   </div>
 </div>
 
+<!-- 촬영 끝: 여유로 더 찍은 사진 중에서 고르기 -->
+<div class="modal gate" id="pickModal" hidden>
+  <div class="modalBox gateBox pickBox" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <span class="chip">사진 고르기</span>
+    <h2 id="pickTitle">마음에 드는 사진을 골라요</h2>
+    <p>누른 순서대로 1번 칸부터 들어가요. 고른 사진을 다시 누르면 빠져요.</p>
+    <div class="pickGrid" id="pickGrid"></div>
+    <div class="gateFoot"><span class="hint" id="pickNote"></span><span class="spacer"></span><button class="btn primary" id="pickOk">이 사진으로 꾸미기 →</button></div>
+  </div>
+</div>
+
 <!-- 사용법 안내 (넘기면서 보기) -->
 <!-- 1단계: 사진 크기 고르기 -->
 <div class="modal gate" id="layoutModal" hidden>
@@ -902,6 +939,7 @@
         <li>처음에 고른 <b>크기</b>대로 찍어요. 찍기 전에는 오른쪽 <b>크기 바꾸기</b>로 바꿀 수 있어요.</li>
         <li><b>배경 바꾸기</b>는 찍기 전에만 돼요.</li>
         <li><b>촬영 시작</b>을 누르면 숫자를 세고 한 컷씩 찍어요.</li>
+        <li>칸 수보다 <b>2장 더</b> 찍어요. 다 찍으면 마음에 드는 사진만 골라요.</li>
         <li>마음에 안 드는 컷은 아래 <b>작은 사진</b>을 눌러 그 컷만 다시 찍어요.</li>
         <li>다 찍었으면 <b>꾸미러 가기 →</b>를 눌러요.</li>
       </ol>
@@ -913,7 +951,7 @@
       <h2>꾸미기</h2>
       <ol>
         <li>오른쪽 <b>프레임</b>에 내 사진이 들어간 디자인이 보여요. 마음에 드는 걸 고르고, <b>필터</b>도 바꿔 봐요.</li>
-        <li>위쪽 <b>프레임 만들기</b>에서 스티커·글자로 직접 꾸며요. 다 꾸몄으면 <b>이 프레임으로 완성 →</b>을 눌러요.</li>
+        <li>노란 <b>프레임 직접 꾸미기</b> 버튼으로 스티커·글자를 넣어요. 다 꾸몄으면 <b>이 프레임으로 완성 →</b>을 눌러요.</li>
         <li>끝나면 <b>다 꾸몄어요 · 인쇄하기 →</b>를 눌러요.</li>
       </ol>
       <p><span class="time">3분</span> 시간이 끝나면 그때까지 꾸민 대로 완성돼요.</p>
@@ -1512,6 +1550,10 @@ const video = $("video");
 // 한 사람의 진행 단계: free(선생님) · gate(동의·안내) → shoot(촬영 3분) → decor(꾸미기 3분) → print(인쇄)
 const sess = { phase: "free", photos: null };
 // 찍은 사진을 프레임 칸 수에 맞춰 나눠 담기 (칸이 더 많으면 처음 사진부터 다시)
+// 학생 흐름에서는 칸 수보다 EXTRA장 더 찍고, 촬영이 끝나면 칸 수만큼 골라요
+const EXTRA = 2;
+const shotCount = (f) => computeSlots(f).length + (sess.phase === "free" ? 0 : EXTRA);
+const filledCount = () => booth.shots.filter(Boolean).length;
 const fitPhotos = (f) => Array.from({ length: computeSlots(f).length }, (_, i) => sess.photos[i % sess.photos.length]);
 
 function boothSetFrame(f) {
@@ -1519,10 +1561,10 @@ function boothSetFrame(f) {
   store.set("m4c.boothFrame", booth.frame);
   const slots = computeSlots(booth.frame);
   // 꾸미기 단계에서는 프레임을 바꿔도 찍은 사진을 그대로 씀
-  booth.shots = sess.photos ? fitPhotos(booth.frame) : Array(slots.length).fill(null);
+  booth.shots = sess.photos ? fitPhotos(booth.frame) : Array(shotCount(booth.frame)).fill(null);
   const s = slotBox(booth.frame, slots[0]);
   $("stage").style.setProperty("--ar", (s.w / s.h).toFixed(4));
-  $("startBtn").textContent = `${slots.length}컷 촬영 시작`;
+  $("startBtn").textContent = booth.shots.length > slots.length ? `촬영 시작 · ${booth.shots.length}장 찍고 ${slots.length}장 고르기` : `${slots.length}컷 촬영 시작`;
   $("resultBox").hidden = !sess.photos;
   renderThumbs(); renderFramePick();
   if (sess.photos) compose();
@@ -1747,7 +1789,7 @@ function renderThumbs() {
   const box = $("thumbs"); box.innerHTML = "";
   const slots = computeSlots(booth.frame);
   const s = slotBox(booth.frame, slots[0]);
-  box.style.gridTemplateColumns = `repeat(${Math.min(slots.length, 6)}, 1fr)`;
+  box.style.gridTemplateColumns = `repeat(${Math.min(booth.shots.length, 8)}, 1fr)`;
   booth.shots.forEach((shot, i) => {
     const b = document.createElement("button");
     b.className = "thumb" + (shot ? " filled" : "");
@@ -1782,17 +1824,28 @@ function renderOutButtons() {
   const add = (label, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = label; b.onclick = fn; box.appendChild(b); };
   // 촬영·꾸미기 단계에는 다음 단계로 가는 버튼만
   if (sess.phase === "shoot") { add("꾸미러 가기 →", "primary", () => finishShoot(true)); return; }
-  if (sess.phase === "decor") { add("다 꾸몄어요 · 인쇄하기 →", "primary", () => finishDecor(false)); return; }
+  if (sess.phase === "decor") { add("다 꾸몄어요 · 인쇄하기 →", "primary", () => finishDecor(false)); add("✏️ 프레임 직접 꾸미기", "makeBig", () => switchTab("editor")); return; }
   const name = `네컷_${Date.now()}.png`, share = canShareFiles();
   if (share) add("공유·저장", "primary", () => shareCanvas(booth.resultCanvas, name));
-  add("PNG 저장", share ? "" : "primary", () => download(booth.resultUrl, name));
+  add("파일로 저장", share ? "" : "primary", () => saveFile(booth.resultCanvas, name));
   if (iw === 2) {
     add("인쇄 · 4×6에 2장", "", () => printImage(booth.resultUrl, 4, 6, 2, iw, ih));
     add("인쇄 · 2×6에 1장", "", () => printImage(booth.resultUrl, 2, 6, 1, iw, ih));
   } else {
     add(`인쇄 · ${iw}×${ih}`, "", () => printImage(booth.resultUrl, iw, ih, 1, iw, ih));
   }
-  add("다음 사람 →", "", () => nextPerson(false));
+  if (sess.phase !== "print") add("다음 사람 →", "", () => nextPerson(false)); // 인쇄 단계에서는 오른쪽 큰 버튼
+}
+$("nextBig").onclick = () => nextPerson(false);
+// PNG 파일로 저장하고, 어디에 저장됐는지 알려 줌
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function saveFile(c, name) {
+  c.toBlob((b) => {
+    const u = URL.createObjectURL(b); download(u, name); setTimeout(() => URL.revokeObjectURL(u), 60000);
+    toast(isIOS() ? "'파일' 앱 › 다운로드 폴더에 저장돼요. 사진 앱에 넣으려면 '공유·저장' → '이미지 저장'을 눌러요."
+      : /Android/.test(navigator.userAgent) ? "다운로드 폴더에 저장됐어요. 갤러리에서 볼 수 있어요."
+      : "이 컴퓨터의 다운로드 폴더에 PNG 파일로 저장됐어요.");
+  }, "image/png");
 }
 // 아이패드 공유 시트: 사진 앱 저장 · 프린트 · AirDrop
 function canShareFiles() {
@@ -1801,7 +1854,7 @@ function canShareFiles() {
 async function shareCanvas(c, name) {
   const blob = await new Promise((r) => c.toBlob(r, "image/png"));
   try { await navigator.share({ files: [new File([blob], name, { type: "image/png" })], title: "우리집 네컷" }); }
-  catch (e) { if (e.name !== "AbortError") toast("공유하지 못했어요. PNG 저장을 이용해 주세요."); }
+  catch (e) { if (e.name !== "AbortError") toast("공유하지 못했어요. 파일로 저장을 이용해 주세요."); }
 }
 function download(url, name) { const a = document.createElement("a"); a.download = name; a.href = url; a.click(); }
 function printImage(url, pw, ph, count, iw, ih) {
@@ -2320,16 +2373,14 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ── 왼쪽 패널 ── */
-const EMOJI_SETS = {
-  "사랑": "❤️ 🧡 💛 💚 💙 💜 🤍 🖤 💕 💖 💗 💘 💝 💞 💓 💌 😍 🥰 😘 💋 🫶 💑 🌹 💐",
-  "표정": "😀 😆 😊 😎 🤩 😜 🤪 😇 🥳 😋 🤭 🥺 😺 😻 🙈 👻 🤠 😴",
-  "반짝": "✨ ⭐ 🌟 💫 ⚡ 🔥 🌈 ☁️ ☀️ 🌙 ❄️ 💧 🫧 💥 🪐 🌠",
-  "동물": "🐶 🐱 🐰 🐻 🐼 🐨 🦊 🐯 🐥 🐧 🦄 🐹 🐸 🐳 🦋 🐝 🐾 🐣",
-  "음식": "🍓 🍒 🍑 🍋 🍰 🧁 🍩 🍪 🍦 🍭 🍬 🍫 ☕ 🧋 🍕 🍔 🍟 🍉",
-  "파티": "🎉 🎊 🎈 🎁 🎂 🎀 🪄 👑 💍 💎 🎵 🎶 📸 🎬 🎮 🏆 🥂 🪩",
-  "계절": "🌸 🌷 🌻 🍀 🌿 🍁 🍂 🎃 🎄 ⛄ 🎅 🌊 🏖️ 🌴 ☃️ 🧣",
-  "손·기호": "👍 ✌️ 🤞 👏 🙌 💪 🤟 👋 💯 ✅ ❗ ❓ ➡️ 🔆 ♾️ 🎯",
-};
+// 그림 스티커 목록: stickers/index.json (파스텔 16개 · 종이 스티커 108개)
+let STICKER_PACKS = null;
+fetch("stickers/index.json").then((r) => r.json()).then((j) => { STICKER_PACKS = j.packs; if (ed.leftTab === "sticker") refreshLeft(); }).catch(() => (STICKER_PACKS = []));
+function addSticker(it) {
+  const k = W() * 0.22 / Math.max(it.w, it.h);
+  asset(it.src);
+  addElement({ type: "image", src: it.src, name: it.name, w: Math.round(it.w * k), h: Math.round(it.h * k), clip: "rect" });
+}
 const TEXT_PRESETS = [
   { label: "기본 글자", el: { text: "텍스트를 입력하세요", font: "Pretendard", bold: true, color: "#222222" } },
   { label: "OUR DAY", el: { text: "OUR DAY", font: "Georgia", bold: true, spacing: 6, color: "#222222" } },
@@ -2496,10 +2547,10 @@ function refreshLeft() {
     }
     case "sticker": {
       p.innerHTML = `<h2>스티커</h2><p class="hint">누르면 가운데에 붙어요. 끌어서 옮기고, 파란 점으로 크기, 흰 점으로 회전해요.</p>
-        ${Object.entries(EMOJI_SETS).map(([name, list]) => `<h3>${name}</h3><div class="emojis">${list.split(" ").map((c) => `<button data-emoji="${c}" title="${c}">${c}</button>`).join("")}</div>`).join("")}
+        ${!STICKER_PACKS ? '<p class="hint">스티커를 불러오는 중…</p>' : STICKER_PACKS.map((pk, pi) => `<h3>${esc(pk.name)}</h3><div class="stickers">${pk.items.map((it, i) => `<button data-st="${pi}:${i}" title="${esc(it.name)}"><img src="${esc(it.src)}" alt="${esc(it.name)}" loading="lazy"></button>`).join("")}</div>`).join("")}
         <h3>내 스티커</h3><button class="btn primary" id="stickerUpload" style="width:100%">🖼 내 이미지로 스티커 만들기</button>
         <p class="hint">고른 뒤 ✂ 배경 지우기 창이 열려요. 파일을 화면에 끌어다 놓아도 돼요.</p>`;
-      p.querySelectorAll("[data-emoji]").forEach((b) => (b.onclick = () => addElement(emo({ char: b.dataset.emoji, size: Math.round(W() * 0.16) }))));
+      p.querySelectorAll("[data-st]").forEach((b) => (b.onclick = () => { const [pi, i] = b.dataset.st.split(":"); addSticker(STICKER_PACKS[pi].items[i]); }));
       $("stickerUpload").onclick = () => pickImage((src) => openBgRemover(src, addImageElement));
       break;
     }
@@ -2586,7 +2637,7 @@ function elLabel(el) {
     case "text": return "T  " + (resolveText(el.text).split("\n")[0] || "(빈 글자)");
     case "emoji": return el.char + "  스티커";
     case "shape": return "⬟  " + SHAPES[el.shape];
-    case "image": return "🖼  이미지";
+    case "image": return el.name ? "★  " + el.name : "🖼  이미지";
   }
   return el.type;
 }
@@ -3104,7 +3155,7 @@ function setKiosk(on) {
   store.set("m4c.kiosk", { on, idle: kiosk.idle, ...(on ? kiosk.defaults : {}) });
   applyKiosk(on);
   // 켜면 첫 학생부터 동의 → 촬영 3분 → 꾸미기 3분, 끄면 시간 제한 없이
-  if (on) nextPerson(false); else resetSession();
+  if (on) nextPerson(false); else { resetSession(); if (booth.frame) boothSetFrame(booth.frame); }
 }
 // 결과를 지우고 처음 상태로: 앞 학생 사진이 다음 학생에게 보이지 않게
 function nextPerson(auto) {
@@ -3197,17 +3248,18 @@ $("lockBtn").onclick = () => openPin(kiosk.on ? "unlock" : "lock");
 // 학생 모드가 꺼져 있으면(선생님) 동의만 받고 시간 제한 없이 자유롭게 써요.
 const LIMIT = { shoot: 3 * 60, decor: 3 * 60 };
 function resetSession() {
+  if ($("pickModal")) $("pickModal").hidden = true;
   Object.assign(sess, { phase: kiosk.on ? "gate" : "free", shootLeft: LIMIT.shoot, decorLeft: LIMIT.decor, photos: null, shootEnding: false });
   document.body.dataset.phase = sess.phase;
   updateLimitPill(); updatePhaseUI();
 }
 function setPhase(p) { sess.phase = p; document.body.dataset.phase = p; updatePhaseUI(); updateLimitPill(); }
 function updatePhaseUI() {
-  const p = sess.phase, all = booth.shots.length > 0 && booth.shots.every(Boolean);
+  const p = sess.phase, all = booth.shots.length > 0 && filledCount() >= computeSlots(booth.frame).length;
   $("toDecorBtn").hidden = !(p === "shoot" && all && !sess.shootEnding);
   $("useBtn").textContent = p === "decor" ? "이 프레임으로 완성 →" : "이 프레임으로 촬영 →";
   $("resultLead").textContent = p === "shoot" ? "마음에 안 드는 컷은 위의 작은 사진을 눌러 다시 찍을 수 있어요. 다 찍었으면 꾸미러 가요!"
-    : p === "decor" ? "오른쪽에서 프레임·필터를 바꾸거나, 위쪽 프레임 만들기에서 직접 꾸며 보세요."
+    : p === "decor" ? "오른쪽에서 프레임·필터를 바꾸거나, 노란 버튼으로 프레임을 직접 꾸며 보세요."
     : "저장하거나 바로 인쇄해서 나눠 가지세요.";
   $("printHint").hidden = p === "shoot" || p === "decor";
   // 꾸미기·인쇄 단계에서는 안내문·버튼을 파란 상자 안 완성 사진 아래로 옮김
@@ -3237,19 +3289,62 @@ function updateLimitPill() {
 // 촬영이 끝나면(시간 끝 또는 '꾸미러 가기'): 비어 있는 컷은 바로 찍고 꾸미기로
 function finishShoot(early) {
   if (sess.phase !== "shoot") return;
-  if (early && !booth.shots.every(Boolean)) return;
+  const need = computeSlots(booth.frame).length;
+  if (early && filledCount() < need) return;
   sess.shootEnding = true; updatePhaseUI();
   if (booth.busy) return; // 찍는 중이면 그 컷이 끝난 뒤 다시 불림
-  const miss = booth.shots.map((s, i) => (s ? -1 : i)).filter((i) => i >= 0);
+  // 시간이 끝나면 칸을 채울 만큼만 더 찍음 (여유분까지 다 찍지는 않음)
+  const miss = booth.shots.map((s, i) => (s ? -1 : i)).filter((i) => i >= 0).slice(0, Math.max(0, need - filledCount()));
   if (miss.length && booth.stream) { toast("촬영 시간이 끝났어요! 남은 컷을 바로 찍을게요."); runSequence(miss); return; }
   const got = booth.shots.filter(Boolean);
   if (!got.length) { nextPerson(true); return; }
+  if (got.length > need) { openPick(got, need, early); return; }
+  startDecor(got, early);
+}
+function startDecor(got, early) {
+  $("pickModal").hidden = true;
   sess.photos = got; sess.shootEnding = false; sess.layout = booth.frame.layout;
   booth.shots = fitPhotos(booth.frame);
   setPhase("decor"); renderThumbs(); compose(); renderFramePick();
   $("heroResult").closest(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
   toast(early ? "이제 꾸밀 차례예요! 3분 동안 프레임·필터를 바꾸거나 직접 꾸며 보세요." : "촬영 시간이 끝났어요. 이제 3분 동안 꾸며요!");
 }
+// 사진 고르기: 처음엔 앞에서부터 need장이 골라져 있고, 누른 순서대로 칸에 들어감. 30초 지나면 지금 고른 대로 넘어감
+const pick = { got: [], need: 0, order: [], left: 0, early: false };
+function openPick(got, need, early) {
+  Object.assign(pick, { got, need, early, order: got.slice(0, need).map((_, i) => i), left: 30 });
+  $("pickTitle").textContent = `마음에 드는 사진 ${need}장을 골라요`;
+  const s = slotBox(booth.frame, computeSlots(booth.frame)[0]), box = $("pickGrid"); box.innerHTML = "";
+  got.forEach((shot, i) => {
+    const b = document.createElement("button"), cv = document.createElement("canvas");
+    cv.width = 300; cv.height = Math.round(300 * s.h / s.w);
+    drawFiltered(cv.getContext("2d"), shot, 0, 0, cv.width, cv.height, booth.filter, i + 1);
+    b.append(cv, document.createElement("i"));
+    b.onclick = () => {
+      const k = pick.order.indexOf(i);
+      if (k >= 0) pick.order.splice(k, 1);
+      else if (pick.order.length < pick.need) pick.order.push(i);
+      else return toast(`${pick.need}장까지 고를 수 있어요. 빼고 싶은 사진을 먼저 눌러 주세요.`);
+      pick.left = 30; renderPick();
+    };
+    box.appendChild(b);
+  });
+  renderPick(); $("pickModal").hidden = false;
+}
+function renderPick() {
+  [...$("pickGrid").children].forEach((b, i) => { const k = pick.order.indexOf(i); b.classList.toggle("on", k >= 0); b.querySelector("i").textContent = k >= 0 ? k + 1 : ""; });
+  const left = pick.need - pick.order.length;
+  $("pickOk").disabled = left > 0;
+  $("pickNote").textContent = left > 0 ? `${left}장 더 골라 주세요` : `${pick.left}초 뒤 이 사진으로 넘어가요`;
+}
+$("pickOk").onclick = () => { if (pick.order.length === pick.need) startDecor(pick.order.map((i) => pick.got[i]), pick.early); };
+setInterval(() => {
+  if ($("pickModal").hidden) return;
+  if (--pick.left > 0) return renderPick();
+  // 시간이 끝나면 모자란 칸은 아직 안 고른 사진으로 채움
+  for (let i = 0; pick.order.length < pick.need && i < pick.got.length; i++) if (!pick.order.includes(i)) pick.order.push(i);
+  $("pickOk").click();
+}, 1000);
 // 꾸미기가 끝나면(시간 끝 또는 '다 꾸몄어요'): 지금 모습으로 완성하고 인쇄로
 function finishDecor(auto) {
   if (sess.phase !== "decor") return;
