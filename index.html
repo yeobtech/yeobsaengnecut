@@ -547,6 +547,24 @@
   .pickGrid button i { position: absolute; top: 8px; left: 8px; width: 34px; height: 34px; border-radius: 99px; display: grid; place-items: center;
     background: rgba(0,0,0,.45); color: #fff; font-style: normal; font-weight: 800; font-size: 17px; }
   .pickGrid button.on i { background: var(--pop); }
+  /* 꾸미기 단계: 프레임 만들기에서 순서대로 */
+  .stepList, .stepNav { display: none; }
+  body[data-phase=decor] .stepList { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  body[data-phase=decor] .stepNav { display: flex; gap: 6px; margin-left: auto; }
+  .stepList button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px 7px 7px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; cursor: default; }
+  .stepList button i { width: 22px; height: 22px; border-radius: 99px; display: grid; place-items: center; background: var(--chip); color: var(--muted); font-style: normal; font-size: 12px; }
+  .stepList button.done { color: var(--text); cursor: pointer; }
+  .stepList button.done i { background: var(--text); color: var(--panel); }
+  .stepList button.now { background: var(--pop); border-color: var(--pop); color: #fff; }
+  .stepList button.now i { background: #fff; color: var(--pop); }
+  .stepNav .btn { min-height: 46px; padding: 0 18px; font-size: 15px; font-weight: 700; }
+  .stepHead { display: flex; align-items: center; gap: 8px; margin: -2px 0 12px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--pop) 10%, transparent); }
+  .stepHead b { font-size: 15px; } .stepHead span { font-size: 13px; color: var(--text); line-height: 1.45; }
+  .stepHead em { flex: none; font-style: normal; font-size: 12px; font-weight: 700; color: #fff; background: var(--pop); border-radius: 99px; padding: 3px 9px; }
+  body[data-phase=decor] .tabs, body[data-phase=decor] .vtabs, body[data-phase=decor] #edName, body[data-phase=decor] #newBtn,
+  body[data-phase=decor] #exportPngBtn, body[data-phase=decor] #useBtn, body[data-phase=decor] #tplFilter, body[data-phase=decor] .layoutChoose { display: none !important; }
+  body[data-phase=decor] #editor .left { grid-template-columns: 1fr; }
+  body[data-phase=decor] .zoombar label.row { display: none; }
   /* 크기 고르기 창 */
   .layoutBox { width: min(760px, 100%); }
   .layoutPick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
@@ -676,6 +694,8 @@
     <input type="text" id="edName" maxlength="30" aria-label="프레임 이름">
     <button class="btn" id="undoBtn" title="실행 취소 (Ctrl+Z)">↶</button>
     <button class="btn" id="redoBtn" title="다시 실행 (Ctrl+Y)">↷</button>
+    <div class="stepList" id="stepList"></div>
+    <div class="stepNav"><button class="btn" id="stepPrev">← 이전</button><button class="btn primary" id="stepNext">다음 →</button></div>
     <button class="btn" id="newBtn">새로 만들기</button>
     <span class="spacer"></span>
     <button class="btn kioskHide" id="importBtn">불러오기</button>
@@ -950,9 +970,9 @@
       <div class="guideIcon">🎨</div>
       <h2>꾸미기</h2>
       <ol>
-        <li>오른쪽 <b>프레임</b>에 내 사진이 들어간 디자인이 보여요. 마음에 드는 걸 고르고, <b>필터</b>도 바꿔 봐요.</li>
-        <li>노란 <b>프레임 직접 꾸미기</b> 버튼으로 스티커·글자를 넣어요. 다 꾸몄으면 <b>이 프레임으로 완성 →</b>을 눌러요.</li>
-        <li>끝나면 <b>다 꾸몄어요 · 인쇄하기 →</b>를 눌러요.</li>
+        <li>다 찍으면 <b>프레임 만들기</b> 화면이 열리고, 내 사진이 들어가 있어요.</li>
+        <li><b>디자인 → 배경 → 사진칸 → 스티커 → 글자 → 필터</b> 순서로 하나씩 꾸며요. 위쪽 <b>다음 →</b>을 눌러 넘어가요.</li>
+        <li>마지막에 <b>완성하기 ✓</b>를 누르면 인쇄 화면으로 가요.</li>
       </ol>
       <p><span class="time">3분</span> 시간이 끝나면 그때까지 꾸민 대로 완성돼요.</p>
     </div>
@@ -2428,9 +2448,25 @@ function toHex(c) {
 }
 
 function refreshLeft() {
+  refreshLeftPanel();
+  if (sess.phase !== "decor") return;
+  const st = DECOR_STEPS[ed.step] || DECOR_STEPS[0];
+  $("leftPanel").insertAdjacentHTML("afterbegin", `<div class="stepHead"><em>${ed.step + 1} / ${DECOR_STEPS.length}</em><span><b>${st.name}</b> · ${st.hint}</span></div>`);
+}
+function refreshLeftPanel() {
   document.querySelectorAll("#leftTabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.lt === ed.leftTab));
   const p = $("leftPanel"), f = ed.frame;
   switch (ed.leftTab) {
+    case "filter": {
+      p.innerHTML = `<h2>필터</h2><p class="hint">사진 분위기를 바꿔요. 누르면 캔버스에 바로 보여요.</p><div class="filterpick" id="edFilterPick"></div>`;
+      for (const fl of allFilters()) {
+        const b = document.createElement("button"); b.className = "btn"; b.textContent = fl.name;
+        b.setAttribute("aria-pressed", booth.filter?.id === fl.id);
+        b.onclick = () => { setBoothFilter(fl); refreshLeft(); draw(); };
+        $("edFilterPick").appendChild(b);
+      }
+      break;
+    }
     case "tpl": {
       const layouts = { all: "전체", ...Object.fromEntries(Object.entries(LAYOUTS).map(([k, v]) => [k, v.name])) };
       p.innerHTML = `<h2>템플릿</h2><p class="hint">고르면 지금 캔버스가 바뀌어요. 실행 취소로 되돌릴 수 있어요.</p>
@@ -2445,7 +2481,7 @@ function refreshLeft() {
         grid.appendChild(b);
       });
       bindSeg($("tplFilter"), (v) => { ed.tplLayoutFilter = v; refreshLeft(); });
-      const mf = $("myFrames"), list = myFrames();
+      const mf = $("myFrames"), list = myFrames().filter((fr) => sess.phase !== "decor" || fr.layout === sess.layout);
       if (!list.length) mf.innerHTML = `<p class="hint">아직 저장한 프레임이 없어요. 위쪽의 💾 내 프레임에 저장을 누르면 여기와 촬영 화면에 나타나요.</p>`;
       list.forEach((fr) => {
         const it = document.createElement("div"); it.className = "item";
@@ -2462,7 +2498,7 @@ function refreshLeft() {
     case "layout": {
       const s = f.slot, L = LAYOUTS[f.layout];
       p.innerHTML = `<h2>사진칸</h2>
-        <h3>레이아웃</h3><div class="tilegrid" id="layoutGrid"></div>
+        <div class="layoutChoose"><h3>레이아웃</h3><div class="tilegrid" id="layoutGrid"></div></div>
         <h3>사진칸 모양</h3><div class="shapes" id="slotShapes"></div>
         ${rangeField("slot", "pad", "좌우 여백", 0, Math.round(L.w * 0.25), 1, s.pad, "px")}
         ${rangeField("slot", "top", "위 여백", 0, Math.round(L.h * 0.3), 1, s.top, "px")}
@@ -3309,13 +3345,42 @@ function finishShoot(early) {
   if (got.length > need) { openPick(got, need, early); return; }
   startDecor(got, early);
 }
+// 꾸미기 순서: 하나씩 '다음 →'으로 넘어가고, 지난 단계는 눌러서 다시 갈 수 있음
+const DECOR_STEPS = [
+  { k: "tpl", name: "디자인", hint: "마음에 드는 프레임 디자인을 골라요." },
+  { k: "bg", name: "배경", hint: "배경 색이나 무늬를 바꿔요. 그대로 둬도 돼요." },
+  { k: "layout", name: "사진칸", hint: "사진칸 모양과 테두리를 꾸며요." },
+  { k: "sticker", name: "스티커", hint: "눌러서 붙이고 끌어서 옮겨요. 꾹 누르면 지울 수 있어요." },
+  { k: "text", name: "글자", hint: "이름이나 하고 싶은 말을 써요." },
+  { k: "filter", name: "필터", hint: "사진 분위기를 골라요." },
+];
+function showStep(i) {
+  ed.step = Math.max(0, Math.min(DECOR_STEPS.length - 1, i));
+  ed.leftTab = DECOR_STEPS[ed.step].k; ed.sel = null;
+  const box = $("stepList"); box.innerHTML = "";
+  DECOR_STEPS.forEach((st, k) => {
+    const b = document.createElement("button");
+    b.className = k < ed.step ? "done" : k === ed.step ? "now" : "";
+    b.innerHTML = `<i>${k < ed.step ? "✓" : k + 1}</i>${st.name}`;
+    b.onclick = () => { if (k < ed.step) showStep(k); };
+    box.appendChild(b);
+  });
+  $("stepPrev").disabled = ed.step === 0;
+  $("stepNext").textContent = ed.step === DECOR_STEPS.length - 1 ? "완성하기 ✓" : `다음: ${DECOR_STEPS[ed.step + 1].name} →`;
+  refreshAll();
+  $("leftPanel").scrollTop = 0;
+}
+$("stepPrev").onclick = () => showStep(ed.step - 1);
+$("stepNext").onclick = () => (ed.step === DECOR_STEPS.length - 1 ? finishDecor(false) : showStep(ed.step + 1));
 function startDecor(got, early) {
   $("pickModal").hidden = true;
   sess.photos = got; sess.shootEnding = false; sess.layout = booth.frame.layout;
   booth.shots = fitPhotos(booth.frame);
   setPhase("decor"); renderThumbs(); compose(); renderFramePick();
-  $("heroResult").closest(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
-  toast(early ? "이제 꾸밀 차례예요! 3분 동안 프레임·필터를 바꾸거나 직접 꾸며 보세요." : "촬영 시간이 끝났어요. 이제 3분 동안 꾸며요!");
+  // 꾸미기는 프레임 만들기 화면에서 순서대로 (템플릿 목록은 찍은 크기만)
+  ed.tplLayoutFilter = sess.layout;
+  switchTab("editor"); showStep(0); window.scrollTo(0, 0);
+  toast(early ? "이제 프레임을 꾸며요! 위쪽 순서대로 하나씩 해 봐요." : "촬영 시간이 끝났어요. 이제 순서대로 꾸며요!");
 }
 // 사진 고르기: 처음엔 앞에서부터 need장이 골라져 있고, 누른 순서대로 칸에 들어감. 30초 지나면 지금 고른 대로 넘어감
 const pick = { got: [], need: 0, order: [], left: 0, early: false };
