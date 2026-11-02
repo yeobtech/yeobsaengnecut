@@ -551,7 +551,8 @@
   .stepList, .stepNav { display: none; }
   body[data-phase=decor] .stepList { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
   body[data-phase=decor] .stepNav { display: flex; gap: 6px; margin-left: auto; }
-  .stepList button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px 7px 7px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; cursor: default; }
+  .stepList button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px 7px 7px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .stepList button:hover:not(.now) { border-color: var(--text); color: var(--text); }
   .stepList button i { width: 22px; height: 22px; border-radius: 99px; display: grid; place-items: center; background: var(--chip); color: var(--muted); font-style: normal; font-size: 12px; }
   .stepList button.done { color: var(--text); cursor: pointer; }
   .stepList button.done i { background: var(--text); color: var(--panel); }
@@ -920,7 +921,7 @@
   <div class="modalBox gateBox pickBox" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
     <span class="chip">사진 고르기</span>
     <h2 id="pickTitle">마음에 드는 사진을 골라요</h2>
-    <p>누른 순서대로 1번 칸부터 들어가요. 고른 사진을 다시 누르면 빠져요.</p>
+    <p>누른 순서대로 1번 칸부터 들어가요. 다 고른 뒤 다른 사진을 누르면 마지막에 고른 사진과 바뀌어요.</p>
     <div class="pickGrid" id="pickGrid"></div>
     <div class="gateFoot"><span class="hint" id="pickNote"></span><span class="spacer"></span><button class="btn primary" id="pickOk">이 사진으로 꾸미기 →</button></div>
   </div>
@@ -961,7 +962,7 @@
         <li><b>촬영 시작</b>을 누르면 숫자를 세고 한 컷씩 찍어요.</li>
         <li>칸 수보다 <b>2장 더</b> 찍어요. 다 찍으면 마음에 드는 사진만 골라요.</li>
         <li>마음에 안 드는 컷은 아래 <b>작은 사진</b>을 눌러 그 컷만 다시 찍어요.</li>
-        <li>다 찍었으면 <b>꾸미러 가기 →</b>를 눌러요.</li>
+        <li>다 찍으면 버튼이 <b>고르고 프레임 꾸미기 →</b>로 바뀌어요. 눌러서 사진을 고르고 꾸미러 가요.</li>
       </ol>
       <p><span class="time">3분</span> 시간이 끝나면 남은 컷을 바로 찍고 꾸미기로 넘어가요.</p>
     </div>
@@ -1053,7 +1054,41 @@ function computeSlots(f) {
 const SHAPES = {
   rect: "사각형", round: "둥근 사각", circle: "원", heart: "하트", star: "별", sparkle: "반짝",
   arch: "아치", cloud: "구름", flower: "꽃", diamond: "다이아", bubble: "말풍선", triangle: "삼각형",
+  bubbleOval: "타원 풍선", bubbleWavy: "꼬불 풍선", bubbleBox: "네모 풍선", bubbleCloud: "구름 풍선", bubbleThought: "생각 풍선", bubbleBurst: "외침 풍선",
 };
+const isBubble = (k) => k.startsWith("bubble");
+// 손그림 느낌 말풍선: 몸통 둘레를 점으로 따라가며 한 번에 그림 (사진칸으로 잘라도 꼬리 이음새에 구멍이 생기지 않게)
+function bubblePath(ctx, kind, x, y, w, h) {
+  const P = (ux, uy) => [x + ux * w, y + uy * h];
+  if (kind === "bubbleBurst") {
+    const n = 22;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + i * TAU / n, k = i % 2 ? 0.7 + 0.08 * Math.sin(i * 2.3) : 1 - 0.05 * Math.abs(Math.sin(i * 1.7));
+      const p = P(0.5 + Math.cos(a) * 0.5 * k, 0.5 + Math.sin(a) * 0.5 * k); i ? ctx.lineTo(...p) : ctx.moveTo(...p);
+    }
+    ctx.closePath(); return;
+  }
+  const thought = kind === "bubbleThought";
+  const cy = thought ? 0.4 : 0.43, rx = 0.47, ry = thought ? 0.38 : 0.4;
+  const body = (a) => {
+    const c = Math.cos(a), s = Math.sin(a);
+    if (kind === "bubbleBox") { const q = 1 + 0.015 * Math.sin(7 * a); return [Math.sign(c) * Math.sqrt(Math.abs(c)) * q, Math.sign(s) * Math.sqrt(Math.abs(s)) * q]; }
+    const r = kind === "bubbleWavy" ? 1 + 0.04 * Math.sin(5 * a + 1) + 0.025 * Math.sin(8 * a + 2)
+      : kind === "bubbleCloud" || thought ? 0.86 + 0.14 * Math.abs(Math.sin(4 * a)) : 1;
+    return [c * r, s * r];
+  };
+  const at = (a) => { const [u, v] = body(a); return P(0.5 + u * rx, cy + v * ry); };
+  const N = 120;
+  if (thought) {   // 꼬리 대신 작은 동그라미 두 개
+    for (let i = 0; i <= N; i++) { const p = at(i / N * TAU); i ? ctx.lineTo(...p) : ctx.moveTo(...p); }
+    ctx.closePath();
+    for (const [ux, uy, r] of [[0.22, 0.86, 0.06], [0.1, 0.96, 0.035]]) { ctx.moveTo(...P(ux + r, uy)); ctx.ellipse(...P(ux, uy), r * w, r * h, 0, 0, TAU); }
+    return;
+  }
+  const a0 = Math.PI * 125 / 180, a1 = Math.PI * 100 / 180 + TAU;   // 꼬리는 왼쪽 아래(100°~125°)에 붙음
+  for (let i = 0; i <= N; i++) { const p = at(a0 + (a1 - a0) * i / N); i ? ctx.lineTo(...p) : ctx.moveTo(...p); }
+  ctx.lineTo(...P(0.18, 0.99)); ctx.closePath();
+}
 const KEEP_RATIO_SLOT = new Set(["heart", "star", "sparkle", "flower", "diamond"]);
 
 function heartPath(ctx, x, y, w, h) {
@@ -1108,11 +1143,14 @@ function shapePath(ctx, shape, x, y, w, h, r = 0) {
     }
     case "diamond": ctx.moveTo(cx, y); ctx.lineTo(x + w, cy); ctx.lineTo(cx, y + h); ctx.lineTo(x, cy); ctx.closePath(); break;
     case "triangle": ctx.moveTo(cx, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); break;
-    case "bubble":
-      ctx.roundRect(x, y, w, h * 0.8, Math.min(w, h) * 0.18);
-      ctx.moveTo(x + w * 0.24, y + h * 0.76); ctx.lineTo(x + w * 0.16, y + h); ctx.lineTo(x + w * 0.44, y + h * 0.76); ctx.closePath();
+    case "bubble": {   // 둥근 사각 + 꼬리를 한 줄로 이어 그림 (따로 그리면 사진칸에서 이음새가 비어 보임)
+      const by = y + h * 0.8, rr = Math.min(w * 0.18, h * 0.3);
+      ctx.moveTo(x + rr, y); ctx.arcTo(x + w, y, x + w, by, rr); ctx.arcTo(x + w, by, x, by, rr);
+      ctx.lineTo(x + w * 0.44, by); ctx.lineTo(x + w * 0.16, y + h); ctx.lineTo(x + w * 0.24, by);
+      ctx.arcTo(x, by, x, y, rr); ctx.arcTo(x, y, x + w, y, rr); ctx.closePath();
       break;
-    default: ctx.rect(x, y, w, h);
+    }
+    default: if (isBubble(shape)) bubblePath(ctx, shape, x, y, w, h); else ctx.rect(x, y, w, h);
   }
 }
 function slotBox(f, s) {
@@ -1592,7 +1630,7 @@ function boothSetFrame(f) {
   booth.shots = sess.photos ? fitPhotos(booth.frame) : Array(shotCount(booth.frame)).fill(null);
   const s = slotBox(booth.frame, slots[0]);
   $("stage").style.setProperty("--ar", (s.w / s.h).toFixed(4));
-  $("startBtn").textContent = booth.shots.length > slots.length ? `촬영 시작 · ${booth.shots.length}장 찍고 ${slots.length}장 고르기` : `${slots.length}컷 촬영 시작`;
+  setStartLabel();
   $("resultBox").hidden = !sess.photos;
   renderThumbs(); renderFramePick();
   if (sess.photos) compose();
@@ -1786,6 +1824,8 @@ function compositeTo(ctx, w, h, m) {
 }
 async function runSequence(indices) {
   if (booth.busy || !booth.stream || sess.phase === "decor" || sess.phase === "print") return;
+  // 안내 창을 건너뛰어 아직 '준비(gate)' 단계로 남아 있어도, 찍기 시작하면 촬영 단계로 (그래야 다 찍은 뒤 꾸미기로 넘어가는 버튼이 생김)
+  if (sess.phase === "gate") { $("layoutModal").hidden = true; setPhase("shoot"); }
   booth.busy = true; setBoothControls(false);
   for (const i of indices) {
     $("shotno").hidden = false; $("shotno").textContent = `${i + 1} / ${booth.shots.length}`;
@@ -1805,7 +1845,17 @@ function setBoothControls(on) {
   document.querySelectorAll(".thumb").forEach((t) => (t.disabled = !shoot));
   document.querySelectorAll("#framePick button").forEach((t) => (t.disabled = !on || sess.phase === "print" || sess.shootEnding));
 }
+// 다 찍기 전엔 '촬영 시작', 다 찍으면 같은 버튼이 '고르고 프레임 꾸미기 →'로 바뀜
+const deckLabel = () => { const need = computeSlots(booth.frame).length; return booth.shots.length > need ? `${need}장 고르고 프레임 꾸미기 →` : "프레임 꾸미기 →"; };
+function setStartLabel() {
+  if (!booth.frame) return;   // 처음 불러올 때는 아직 프레임이 없음
+  const need = computeSlots(booth.frame).length, n = booth.shots.length, b = $("startBtn");
+  const ready = sess.phase === "shoot" && !sess.shootEnding && filledCount() >= need;
+  b.dataset.next = ready ? "1" : "";
+  b.textContent = ready ? deckLabel() : n > need ? `촬영 시작 · ${n}장 찍고 ${need}장 고르기` : `${need}컷 촬영 시작`;
+}
 $("startBtn").onclick = () => {
+  if ($("startBtn").dataset.next) return finishShoot(true);
   if (!canShoot()) return;
   booth.shots = booth.shots.map(() => null); renderThumbs(); $("resultBox").hidden = true;
   runSequence(booth.shots.map((_, i) => i));
@@ -1851,7 +1901,7 @@ function renderOutButtons() {
   const box = $("outBtns"); box.innerHTML = "";
   const add = (label, cls, fn) => { const b = document.createElement("button"); b.className = "btn " + cls; b.textContent = label; b.onclick = fn; box.appendChild(b); };
   // 촬영·꾸미기 단계에는 다음 단계로 가는 버튼만
-  if (sess.phase === "shoot") { add("꾸미러 가기 →", "primary", () => finishShoot(true)); return; }
+  if (sess.phase === "shoot") { add(deckLabel(), "primary", () => finishShoot(true)); return; }
   if (sess.phase === "decor") { add("다 꾸몄어요 · 인쇄하기 →", "primary", () => finishDecor(false)); add("✏️ 프레임 직접 꾸미기", "makeBig", () => switchTab("editor")); return; }
   const name = `네컷_${Date.now()}.png`, share = canShareFiles();
   if (share) add("공유·저장", "primary", () => shareCanvas(booth.resultCanvas, name));
@@ -2518,7 +2568,8 @@ function refreshLeftPanel() {
         lg.appendChild(b);
       });
       const ss = $("slotShapes");
-      ["rect", "round", "circle", "heart", "star", "arch", "cloud", "flower", "diamond", "sparkle"].forEach((k) => {
+      ["rect", "round", "circle", "heart", "star", "arch", "cloud", "flower", "diamond", "sparkle",
+        "bubble", "bubbleOval", "bubbleWavy", "bubbleBox", "bubbleCloud", "bubbleThought", "bubbleBurst"].forEach((k) => {
         const b = document.createElement("button"); b.setAttribute("aria-pressed", k === s.shape);
         b.className = "btn"; b.style.padding = "6px";
         b.appendChild(shapeIcon(k, "#adb5bd")); b.appendChild(document.createTextNode(SHAPES[k]));
@@ -2600,15 +2651,17 @@ function refreshLeftPanel() {
     }
     case "shape": {
       p.innerHTML = `<h2>도형</h2><div class="shapes" id="shapeGrid"></div>
+        <h3>말풍선</h3><div class="shapes" id="bubbleGrid"></div>
         <h3>도형 색</h3><input type="color" id="shapeColor" value="${ed.shapeColor || "#ff8fab"}">
         <div class="swatches" id="shapeSw">${SWATCHES.map((c) => `<button style="background:${c}" data-c="${c}"></button>`).join("")}</div>
         <h3>꾸밈 줄</h3><div class="row"><button class="btn sm" id="addLine">가로 선</button><button class="btn sm" id="addBand">띠 배경</button></div>`;
       const g = $("shapeGrid");
       Object.keys(SHAPES).forEach((k) => {
-        const b = document.createElement("button");
-        b.append(shapeIcon(k, ed.shapeColor || "#ff8fab"), SHAPES[k]);
-        b.onclick = () => { const s = Math.round(W() * 0.22); addElement(shp({ shape: k, w: k === "bubble" ? s * 1.4 : s, h: s, fill: ed.shapeColor || "#ff8fab", radius: s * 0.15 })); };
-        g.appendChild(b);
+        const b = document.createElement("button"), bub = isBubble(k);
+        // 말풍선은 흰 바탕 + 검은 테두리로 (손그림 말풍선처럼). 색은 오른쪽에서 바꿀 수 있어요
+        b.append(shapeIcon(k, bub ? "#ffffff" : ed.shapeColor || "#ff8fab", bub ? "#222222" : null), SHAPES[k]);
+        b.onclick = () => { const s = Math.round(W() * 0.22); addElement(shp({ shape: k, w: bub ? s * 1.4 : s, h: s, fill: bub ? "#ffffff" : ed.shapeColor || "#ff8fab", strokeW: bub ? 5 : 0, strokeC: "#222222", radius: s * 0.15 })); };
+        (bub ? $("bubbleGrid") : g).appendChild(b);
       });
       const setC = (c) => { ed.shapeColor = c; refreshLeft(); };
       $("shapeColor").onchange = (e) => setC(e.target.value);
@@ -2628,9 +2681,10 @@ function refreshLeftPanel() {
     }
   }
 }
-function shapeIcon(k, color) {
+function shapeIcon(k, color, line) {
   const c = document.createElement("canvas"); c.width = 80; c.height = 80;
   const x = c.getContext("2d"); shapePath(x, k, 12, 12, 56, 56, 12); x.fillStyle = color; x.fill();
+  if (line) { x.lineJoin = "round"; x.lineWidth = 3; x.strokeStyle = line; x.stroke(); }
   return c;
 }
 function changeLayout(k) {
@@ -3300,9 +3354,10 @@ function resetSession() {
 function setPhase(p) { sess.phase = p; document.body.dataset.phase = p; updatePhaseUI(); updateLimitPill(); }
 function updatePhaseUI() {
   const p = sess.phase, all = booth.shots.length > 0 && filledCount() >= computeSlots(booth.frame).length;
-  $("toDecorBtn").hidden = !(p === "shoot" && all && !sess.shootEnding);
+  $("toDecorBtn").hidden = true;   // 촬영 시작 버튼이 다 찍으면 '고르고 프레임 꾸미기'로 바뀌어 대신함
+  setStartLabel();
   $("useBtn").textContent = p === "decor" ? "이 프레임으로 완성 →" : "이 프레임으로 촬영 →";
-  $("resultLead").textContent = p === "shoot" ? "마음에 안 드는 컷은 위의 작은 사진을 눌러 다시 찍을 수 있어요. 다 찍었으면 꾸미러 가요!"
+  $("resultLead").textContent = p === "shoot" ? "마음에 안 드는 컷은 위의 작은 사진을 눌러 다시 찍을 수 있어요. 다 찍었으면 사진을 고르고 꾸미러 가요!"
     : p === "decor" ? "오른쪽에서 프레임·필터를 바꾸거나, 노란 버튼으로 프레임을 직접 꾸며 보세요."
     : "저장하거나 바로 인쇄해서 나눠 가지세요.";
   $("printHint").hidden = p === "shoot" || p === "decor";
@@ -3345,7 +3400,7 @@ function finishShoot(early) {
   if (got.length > need) { openPick(got, need, early); return; }
   startDecor(got, early);
 }
-// 꾸미기 순서: 하나씩 '다음 →'으로 넘어가고, 지난 단계는 눌러서 다시 갈 수 있음
+// 꾸미기 순서: '다음 →'으로 차례대로 가도 되고, 위쪽 단계를 눌러 아무 단계로나 바로 갈 수도 있음 (가 본 단계는 ✓)
 const DECOR_STEPS = [
   { k: "tpl", name: "디자인", hint: "마음에 드는 프레임 디자인을 골라요." },
   { k: "bg", name: "배경", hint: "배경 색이나 무늬를 바꿔요. 그대로 둬도 돼요." },
@@ -3357,12 +3412,13 @@ const DECOR_STEPS = [
 function showStep(i) {
   ed.step = Math.max(0, Math.min(DECOR_STEPS.length - 1, i));
   ed.leftTab = DECOR_STEPS[ed.step].k; ed.sel = null;
+  (ed.seen ||= new Set()).add(ed.step);
   const box = $("stepList"); box.innerHTML = "";
   DECOR_STEPS.forEach((st, k) => {
-    const b = document.createElement("button");
-    b.className = k < ed.step ? "done" : k === ed.step ? "now" : "";
-    b.innerHTML = `<i>${k < ed.step ? "✓" : k + 1}</i>${st.name}`;
-    b.onclick = () => { if (k < ed.step) showStep(k); };
+    const b = document.createElement("button"), done = ed.seen.has(k);
+    b.className = k === ed.step ? "now" : done ? "done" : "";
+    b.innerHTML = `<i>${k !== ed.step && done ? "✓" : k + 1}</i>${st.name}`;
+    b.onclick = () => { if (k !== ed.step) showStep(k); };
     box.appendChild(b);
   });
   $("stepPrev").disabled = ed.step === 0;
@@ -3379,8 +3435,8 @@ function startDecor(got, early) {
   setPhase("decor"); renderThumbs(); compose(); renderFramePick();
   // 꾸미기는 프레임 만들기 화면에서 순서대로 (템플릿 목록은 찍은 크기만)
   ed.tplLayoutFilter = sess.layout;
-  switchTab("editor"); showStep(0); window.scrollTo(0, 0);
-  toast(early ? "이제 프레임을 꾸며요! 위쪽 순서대로 하나씩 해 봐요." : "촬영 시간이 끝났어요. 이제 순서대로 꾸며요!");
+  switchTab("editor"); ed.seen = new Set(); showStep(0); window.scrollTo(0, 0);
+  toast(early ? "이제 프레임을 꾸며요! 위쪽 단계를 눌러 원하는 것부터 해도 돼요." : "촬영 시간이 끝났어요. 이제 꾸며요!");
 }
 // 사진 고르기: 처음엔 앞에서부터 need장이 골라져 있고, 누른 순서대로 칸에 들어감. 30초 지나면 지금 고른 대로 넘어감
 const pick = { got: [], need: 0, order: [], left: 0, early: false };
@@ -3397,7 +3453,7 @@ function openPick(got, need, early) {
       const k = pick.order.indexOf(i);
       if (k >= 0) pick.order.splice(k, 1);
       else if (pick.order.length < pick.need) pick.order.push(i);
-      else return toast(`${pick.need}장까지 고를 수 있어요. 빼고 싶은 사진을 먼저 눌러 주세요.`);
+      else pick.order[pick.order.length - 1] = i;   // 다 골랐으면 마지막에 고른 사진과 바로 바꿈
       pick.left = 30; renderPick();
     };
     box.appendChild(b);
