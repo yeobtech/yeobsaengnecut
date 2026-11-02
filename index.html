@@ -1552,9 +1552,9 @@ function T(layout, name, mod) { const f = newFrame(layout); f.id = "tpl-" + name
 const txt = (p) => ({ id: uid(), type: "text", text: "TEXT", font: "Pretendard", size: 60, color: "#222222", bold: true, italic: false, align: "center", spacing: 0, lh: 1.2, strokeW: 0, strokeC: "#ffffff", shadow: false, bgOn: false, bgC: "#ffffff", rot: 0, opacity: 1, ...p });
 // 그림 스티커 (stickers/ 폴더): 긴 쪽 길이를 size로 맞춤
 const STK = {
-  "rabbit/26": ["큰 하트", 136, 124], "rabbit/13": ["해", 124, 132], "rabbit/12": ["리본 토끼", 220, 284], "rabbit/45": ["분홍 하트", 100, 100],
-  "rabbit/29": ["별", 104, 104], "rabbit/60": ["케이크 토끼", 240, 284], "rabbit/03": ["하트 풍선", 104, 104], "rabbit/63": ["당근 토끼", 252, 284],
-  "rabbit/01": ["좋은 하루", 232, 148],
+  "rabbit/26": ["큰 하트", 116, 108], "rabbit/13": ["해", 112, 116], "rabbit/12": ["리본 토끼", 202, 268], "rabbit/45": ["분홍 하트", 82, 84],
+  "rabbit/29": ["별", 86, 84], "rabbit/60": ["케이크 토끼", 230, 266], "rabbit/03": ["하트 풍선", 80, 92], "rabbit/63": ["당근 토끼", 238, 270],
+  "rabbit/01": ["좋은 하루", 222, 132],
 };
 const pic = (key, size, p) => {
   const [name, w, h] = STK[key], k = size / Math.max(w, h);
@@ -2483,7 +2483,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ── 왼쪽 패널 ── */
-// 그림 스티커 목록: stickers/index.json (토끼 17개 · 토끼 말풍선 7개 · 꾸미기 소품 27개)
+// 그림 스티커 목록: stickers/index.json (토끼 17개 · 토끼 말풍선 6개 · 꾸미기 소품 27개)
 let STICKER_PACKS = null;
 fetch("stickers/index.json").then((r) => r.json()).then((j) => { STICKER_PACKS = j.packs; if (ed.leftTab === "sticker") refreshLeft(); }).catch(() => (STICKER_PACKS = []));
 // 말풍선 스티커: 흰 바탕 + 검은 테두리, 붙이자마자 글자 칸에 커서

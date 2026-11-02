@@ -6,104 +6,104 @@
     {
      "src": "stickers/rabbit/02.webp",
      "name": "당근 토끼",
-     "w": 232,
-     "h": 264
+     "w": 216,
+     "h": 250
     },
     {
      "src": "stickers/rabbit/06.webp",
      "name": "구름 토끼",
-     "w": 472,
-     "h": 348
+     "w": 454,
+     "h": 328
     },
     {
      "src": "stickers/rabbit/09.webp",
      "name": "컵 토끼",
-     "w": 272,
-     "h": 280
+     "w": 256,
+     "h": 260
     },
     {
      "src": "stickers/rabbit/12.webp",
      "name": "리본 토끼",
-     "w": 220,
-     "h": 284
+     "w": 202,
+     "h": 268
     },
     {
      "src": "stickers/rabbit/15.webp",
      "name": "편지 토끼",
-     "w": 256,
-     "h": 288
+     "w": 242,
+     "h": 274
     },
     {
      "src": "stickers/rabbit/20.webp",
      "name": "화이팅 토끼",
-     "w": 464,
-     "h": 344
+     "w": 446,
+     "h": 332
     },
     {
      "src": "stickers/rabbit/23.webp",
      "name": "낮잠 토끼",
-     "w": 376,
+     "w": 362,
      "h": 268
     },
     {
      "src": "stickers/rabbit/28.webp",
      "name": "안녕 토끼",
-     "w": 284,
-     "h": 284
+     "w": 220,
+     "h": 266
     },
     {
      "src": "stickers/rabbit/32.webp",
      "name": "노트북 토끼",
-     "w": 272,
-     "h": 272
+     "w": 258,
+     "h": 258
     },
     {
      "src": "stickers/rabbit/36.webp",
      "name": "팬케이크 토끼",
-     "w": 248,
-     "h": 284
+     "w": 238,
+     "h": 277
     },
     {
      "src": "stickers/rabbit/40.webp",
      "name": "달 토끼",
-     "w": 252,
-     "h": 264
+     "w": 236,
+     "h": 272
     },
     {
      "src": "stickers/rabbit/44.webp",
      "name": "신난 토끼",
-     "w": 288,
-     "h": 256
+     "w": 281,
+     "h": 269
     },
     {
      "src": "stickers/rabbit/49.webp",
      "name": "딸기집 토끼",
-     "w": 340,
-     "h": 280
+     "w": 330,
+     "h": 262
     },
     {
      "src": "stickers/rabbit/51.webp",
      "name": "버블티 토끼",
-     "w": 288,
-     "h": 488
+     "w": 276,
+     "h": 480
     },
     {
      "src": "stickers/rabbit/55.webp",
      "name": "졸린 토끼",
-     "w": 256,
-     "h": 240
+     "w": 230,
+     "h": 222
     },
     {
      "src": "stickers/rabbit/60.webp",
      "name": "케이크 토끼",
-     "w": 240,
-     "h": 284
+     "w": 230,
+     "h": 266
     },
     {
      "src": "stickers/rabbit/63.webp",
      "name": "당근 토끼 2",
-     "w": 252,
-     "h": 284
+     "w": 238,
+     "h": 270
     }
    ]
   },
@@ -113,50 +113,43 @@
     {
      "src": "stickers/rabbit/01.webp",
      "name": "좋은 하루",
-     "w": 232,
-     "h": 148,
+     "w": 222,
+     "h": 132,
      "size": 0.2
     },
     {
      "src": "stickers/rabbit/16.webp",
      "name": "고마워",
-     "w": 196,
-     "h": 152,
+     "w": 182,
+     "h": 134,
      "size": 0.2
     },
     {
      "src": "stickers/rabbit/35.webp",
      "name": "행복해",
-     "w": 204,
-     "h": 152,
+     "w": 190,
+     "h": 136,
      "size": 0.2
     },
     {
      "src": "stickers/rabbit/37.webp",
      "name": "반가워",
-     "w": 208,
-     "h": 140,
+     "w": 192,
+     "h": 126,
      "size": 0.2
     },
     {
      "src": "stickers/rabbit/41.webp",
      "name": "잘했어",
-     "w": 192,
-     "h": 148,
-     "size": 0.2
-    },
-    {
-     "src": "stickers/rabbit/52.webp",
-     "name": "냠냠",
-     "w": 148,
-     "h": 136,
+     "w": 176,
+     "h": 132,
      "size": 0.2
     },
     {
      "src": "stickers/rabbit/56.webp",
      "name": "졸려",
-     "w": 188,
-     "h": 152,
+     "w": 175,
+     "h": 134,
      "size": 0.2
     }
    ]
@@ -167,190 +160,190 @@
     {
      "src": "stickers/rabbit/03.webp",
      "name": "하트 풍선",
-     "w": 104,
-     "h": 104,
+     "w": 80,
+     "h": 92,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/04.webp",
      "name": "노란 하트",
-     "w": 96,
-     "h": 96,
+     "w": 76,
+     "h": 76,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/05.webp",
      "name": "분홍 딸기",
-     "w": 120,
-     "h": 148,
+     "w": 104,
+     "h": 130,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/07.webp",
      "name": "하얀 꽃",
-     "w": 120,
-     "h": 124,
+     "w": 100,
+     "h": 104,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/11.webp",
      "name": "책",
-     "w": 164,
-     "h": 160,
+     "w": 150,
+     "h": 146,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/13.webp",
      "name": "해",
-     "w": 124,
-     "h": 132,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/14.webp",
-     "name": "노란 꽃",
-     "w": 112,
-     "h": 112,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/17.webp",
-     "name": "잼",
-     "w": 116,
-     "h": 128,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/18.webp",
-     "name": "하트",
-     "w": 92,
-     "h": 92,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/19.webp",
-     "name": "튤립",
-     "w": 104,
-     "h": 152,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/21.webp",
-     "name": "네잎클로버",
-     "w": 108,
-     "h": 140,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/22.webp",
-     "name": "무지개",
-     "w": 264,
-     "h": 176,
-     "size": 0.13
-    },
-    {
-     "src": "stickers/rabbit/24.webp",
-     "name": "딸기",
      "w": 112,
      "h": 116,
      "size": 0.13
     },
     {
+     "src": "stickers/rabbit/14.webp",
+     "name": "노란 꽃",
+     "w": 96,
+     "h": 94,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/17.webp",
+     "name": "잼",
+     "w": 96,
+     "h": 110,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/18.webp",
+     "name": "하트",
+     "w": 72,
+     "h": 72,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/19.webp",
+     "name": "튤립",
+     "w": 88,
+     "h": 138,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/21.webp",
+     "name": "네잎클로버",
+     "w": 92,
+     "h": 120,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/22.webp",
+     "name": "무지개",
+     "w": 250,
+     "h": 158,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/24.webp",
+     "name": "딸기",
+     "w": 92,
+     "h": 98,
+     "size": 0.13
+    },
+    {
      "src": "stickers/rabbit/26.webp",
      "name": "큰 하트",
-     "w": 136,
-     "h": 124,
+     "w": 116,
+     "h": 108,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/27.webp",
      "name": "분홍 꽃",
-     "w": 112,
-     "h": 160,
+     "w": 96,
+     "h": 138,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/29.webp",
      "name": "별",
-     "w": 104,
-     "h": 104,
+     "w": 86,
+     "h": 84,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/33.webp",
      "name": "카메라",
-     "w": 144,
-     "h": 132,
+     "w": 128,
+     "h": 116,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/34.webp",
      "name": "하늘 구름",
-     "w": 136,
-     "h": 104,
+     "w": 116,
+     "h": 84,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/39.webp",
      "name": "빨간 하트",
-     "w": 100,
-     "h": 100,
+     "w": 82,
+     "h": 86,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/43.webp",
      "name": "클로버",
-     "w": 120,
-     "h": 140,
+     "w": 104,
+     "h": 126,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/45.webp",
      "name": "분홍 하트",
-     "w": 100,
-     "h": 100,
+     "w": 82,
+     "h": 84,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/47.webp",
      "name": "우유",
-     "w": 144,
-     "h": 180,
+     "w": 130,
+     "h": 162,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/50.webp",
      "name": "케이크",
-     "w": 136,
-     "h": 128,
+     "w": 120,
+     "h": 106,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/57.webp",
      "name": "연분홍 하트",
-     "w": 92,
-     "h": 92,
+     "w": 86,
+     "h": 80,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/59.webp",
      "name": "노란 별",
-     "w": 100,
-     "h": 100,
+     "w": 80,
+     "h": 78,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/61.webp",
      "name": "파란 구름",
-     "w": 192,
-     "h": 136,
+     "w": 174,
+     "h": 116,
      "size": 0.13
     },
     {
      "src": "stickers/rabbit/62.webp",
      "name": "새싹 꽃",
-     "w": 104,
-     "h": 100,
+     "w": 84,
+     "h": 80,
      "size": 0.13
     }
    ]
