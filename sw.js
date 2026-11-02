@@ -1,6 +1,6 @@
 // 오프라인에서도 열리도록 앱 파일을 기기에 보관하는 서비스 워커
 // 앱을 고친 뒤에는 VERSION을 올려야 기기에 새 파일이 반영돼요.
-const VERSION = "m4c-v19";
+const VERSION = "m4c-v20";
 const CORE = [
   "./", "./index.html", "./ai.js", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png",
@@ -12,7 +12,7 @@ const CORE = [
 // AI 파일(수십 MB)은 처음 쓸 때 받아서 보관
 const LAZY = /\/(vendor|models|stickers)\//;
 
-// 그림 스티커(약 1.6MB)도 처음 설치할 때 함께 보관해 오프라인에서 쓸 수 있게
+// 그림 스티커(약 0.5MB)도 처음 설치할 때 함께 보관해 오프라인에서 쓸 수 있게
 const stickerFiles = () => fetch("./stickers/index.json").then((r) => r.json())
   .then((j) => j.packs.flatMap((p) => p.items.map((it) => "./" + it.src))).catch(() => []);
 

@@ -1,756 +1,357 @@
 {
  "packs": [
   {
-   "name": "파스텔",
+   "name": "토끼",
    "items": [
     {
-     "src": "stickers/pastel/01.webp",
-     "name": "햇살",
-     "w": 237,
-     "h": 232
+     "src": "stickers/rabbit/02.webp",
+     "name": "당근 토끼",
+     "w": 232,
+     "h": 264
     },
     {
-     "src": "stickers/pastel/02.webp",
-     "name": "벚꽃",
-     "w": 235,
-     "h": 220
+     "src": "stickers/rabbit/06.webp",
+     "name": "구름 토끼",
+     "w": 472,
+     "h": 348
     },
     {
-     "src": "stickers/pastel/03.webp",
-     "name": "무지개",
-     "w": 273,
-     "h": 199
+     "src": "stickers/rabbit/09.webp",
+     "name": "컵 토끼",
+     "w": 272,
+     "h": 280
     },
     {
-     "src": "stickers/pastel/04.webp",
-     "name": "체리",
-     "w": 210,
-     "h": 242
+     "src": "stickers/rabbit/12.webp",
+     "name": "리본 토끼",
+     "w": 220,
+     "h": 284
     },
     {
-     "src": "stickers/pastel/05.webp",
-     "name": "초승달",
-     "w": 208,
-     "h": 227
-    },
-    {
-     "src": "stickers/pastel/06.webp",
-     "name": "하트편지",
-     "w": 270,
-     "h": 218
-    },
-    {
-     "src": "stickers/pastel/07.webp",
-     "name": "클로버",
-     "w": 204,
-     "h": 227
-    },
-    {
-     "src": "stickers/pastel/08.webp",
-     "name": "막대사탕",
-     "w": 215,
-     "h": 239
-    },
-    {
-     "src": "stickers/pastel/09.webp",
-     "name": "컵케이크",
-     "w": 209,
-     "h": 261
-    },
-    {
-     "src": "stickers/pastel/10.webp",
-     "name": "젤리빈",
-     "w": 236,
-     "h": 206
-    },
-    {
-     "src": "stickers/pastel/11.webp",
-     "name": "별똥별",
-     "w": 257,
-     "h": 212
-    },
-    {
-     "src": "stickers/pastel/12.webp",
-     "name": "체크하트",
-     "w": 226,
-     "h": 177
-    },
-    {
-     "src": "stickers/pastel/13.webp",
-     "name": "하트메모",
-     "w": 223,
-     "h": 207
-    },
-    {
-     "src": "stickers/pastel/14.webp",
-     "name": "수박",
-     "w": 227,
-     "h": 215
-    },
-    {
-     "src": "stickers/pastel/15.webp",
-     "name": "곰돌이컵",
-     "w": 231,
-     "h": 213
-    },
-    {
-     "src": "stickers/pastel/16.webp",
-     "name": "하트사탕",
-     "w": 257,
-     "h": 181
-    }
-   ]
-  },
-  {
-   "name": "종이 스티커",
-   "items": [
-    {
-     "src": "stickers/paper/001.webp",
-     "name": "비행기",
-     "w": 282,
-     "h": 259
-    },
-    {
-     "src": "stickers/paper/002.webp",
-     "name": "아이스커피",
-     "w": 161,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/003.webp",
-     "name": "꽃다발",
-     "w": 246,
-     "h": 267
-    },
-    {
-     "src": "stickers/paper/004.webp",
-     "name": "헬멧",
+     "src": "stickers/rabbit/15.webp",
+     "name": "편지 토끼",
      "w": 256,
-     "h": 275
+     "h": 288
     },
     {
-     "src": "stickers/paper/005.webp",
-     "name": "테니스",
-     "w": 266,
-     "h": 265
+     "src": "stickers/rabbit/20.webp",
+     "name": "화이팅 토끼",
+     "w": 464,
+     "h": 344
     },
     {
-     "src": "stickers/paper/006.webp",
-     "name": "꽃을문새",
-     "w": 271,
-     "h": 249
-    },
-    {
-     "src": "stickers/paper/007.webp",
-     "name": "펼친책",
-     "w": 276,
-     "h": 213
-    },
-    {
-     "src": "stickers/paper/008.webp",
-     "name": "윈드서핑",
-     "w": 109,
-     "h": 270
-    },
-    {
-     "src": "stickers/paper/009.webp",
-     "name": "음악말풍선",
-     "w": 273,
-     "h": 230
-    },
-    {
-     "src": "stickers/paper/010.webp",
-     "name": "챙모자",
-     "w": 271,
-     "h": 136
-    },
-    {
-     "src": "stickers/paper/011.webp",
-     "name": "물음표",
-     "w": 176,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/012.webp",
-     "name": "재생",
-     "w": 272,
-     "h": 206
-    },
-    {
-     "src": "stickers/paper/013.webp",
-     "name": "골뱅이",
-     "w": 270,
-     "h": 265
-    },
-    {
-     "src": "stickers/paper/014.webp",
-     "name": "디스크",
-     "w": 273,
-     "h": 255
-    },
-    {
-     "src": "stickers/paper/015.webp",
-     "name": "말풍선",
-     "w": 274,
-     "h": 222
-    },
-    {
-     "src": "stickers/paper/016.webp",
-     "name": "자물쇠",
-     "w": 224,
-     "h": 275
-    },
-    {
-     "src": "stickers/paper/017.webp",
-     "name": "스마트폰",
-     "w": 195,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/018.webp",
-     "name": "테이크아웃컵",
-     "w": 201,
-     "h": 275
-    },
-    {
-     "src": "stickers/paper/019.webp",
-     "name": "금화",
-     "w": 262,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/020.webp",
-     "name": "인사말",
-     "w": 273,
-     "h": 233
-    },
-    {
-     "src": "stickers/paper/021.webp",
-     "name": "쇼핑백",
-     "w": 209,
-     "h": 277
-    },
-    {
-     "src": "stickers/paper/022.webp",
-     "name": "해시태그",
-     "w": 273,
-     "h": 209
-    },
-    {
-     "src": "stickers/paper/023.webp",
-     "name": "잎사귀",
-     "w": 278,
-     "h": 229
-    },
-    {
-     "src": "stickers/paper/024.webp",
-     "name": "소화전",
-     "w": 184,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/025.webp",
-     "name": "둥근선인장",
-     "w": 176,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/026.webp",
-     "name": "트리",
-     "w": 204,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/027.webp",
-     "name": "기둥선인장",
-     "w": 142,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/028.webp",
-     "name": "가지선인장",
-     "w": 151,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/029.webp",
-     "name": "소스병",
-     "w": 222,
-     "h": 278
-    },
-    {
-     "src": "stickers/paper/030.webp",
-     "name": "메달",
-     "w": 172,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/031.webp",
-     "name": "더하기",
-     "w": 272,
-     "h": 265
-    },
-    {
-     "src": "stickers/paper/032.webp",
-     "name": "초코도넛",
-     "w": 265,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/033.webp",
-     "name": "깃발",
-     "w": 267,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/034.webp",
-     "name": "음표",
-     "w": 268,
-     "h": 265
-    },
-    {
-     "src": "stickers/paper/035.webp",
-     "name": "미식축구공",
-     "w": 276,
-     "h": 214
-    },
-    {
-     "src": "stickers/paper/036.webp",
-     "name": "축구공",
-     "w": 266,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/037.webp",
-     "name": "의료상담",
-     "w": 273,
-     "h": 227
-    },
-    {
-     "src": "stickers/paper/038.webp",
-     "name": "위치핀",
-     "w": 198,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/039.webp",
-     "name": "파인애플",
-     "w": 154,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/040.webp",
-     "name": "돋보기",
-     "w": 251,
+     "src": "stickers/rabbit/23.webp",
+     "name": "낮잠 토끼",
+     "w": 376,
      "h": 268
     },
     {
-     "src": "stickers/paper/041.webp",
-     "name": "선물",
-     "w": 242,
-     "h": 281
+     "src": "stickers/rabbit/28.webp",
+     "name": "안녕 토끼",
+     "w": 284,
+     "h": 284
     },
     {
-     "src": "stickers/paper/042.webp",
-     "name": "머그잔",
-     "w": 270,
-     "h": 256
-    },
-    {
-     "src": "stickers/paper/043.webp",
-     "name": "카메라",
-     "w": 274,
-     "h": 186
-    },
-    {
-     "src": "stickers/paper/044.webp",
-     "name": "무지개하트",
-     "w": 274,
-     "h": 247
-    },
-    {
-     "src": "stickers/paper/045.webp",
-     "name": "강아지",
-     "w": 270,
-     "h": 123
-    },
-    {
-     "src": "stickers/paper/046.webp",
-     "name": "십자가",
-     "w": 198,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/047.webp",
-     "name": "입술",
-     "w": 271,
-     "h": 202
-    },
-    {
-     "src": "stickers/paper/048.webp",
-     "name": "볼링",
-     "w": 243,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/049.webp",
-     "name": "번개",
-     "w": 168,
-     "h": 276
-    },
-    {
-     "src": "stickers/paper/050.webp",
-     "name": "딸기도넛",
+     "src": "stickers/rabbit/32.webp",
+     "name": "노트북 토끼",
      "w": 272,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/051.webp",
-     "name": "지폐",
-     "w": 267,
-     "h": 157
-    },
-    {
-     "src": "stickers/paper/052.webp",
-     "name": "아보카도",
-     "w": 267,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/053.webp",
-     "name": "맥주",
-     "w": 244,
      "h": 272
     },
     {
-     "src": "stickers/paper/054.webp",
-     "name": "톱니바퀴",
-     "w": 273,
-     "h": 217
+     "src": "stickers/rabbit/36.webp",
+     "name": "팬케이크 토끼",
+     "w": 248,
+     "h": 284
     },
     {
-     "src": "stickers/paper/055.webp",
-     "name": "하트",
-     "w": 269,
-     "h": 241
-    },
-    {
-     "src": "stickers/paper/056.webp",
-     "name": "편지",
-     "w": 273,
-     "h": 276
-    },
-    {
-     "src": "stickers/paper/057.webp",
-     "name": "카세트",
-     "w": 275,
-     "h": 184
-    },
-    {
-     "src": "stickers/paper/058.webp",
-     "name": "심장박동",
-     "w": 273,
-     "h": 268
-    },
-    {
-     "src": "stickers/paper/059.webp",
-     "name": "구름",
-     "w": 272,
-     "h": 180
-    },
-    {
-     "src": "stickers/paper/060.webp",
-     "name": "공룡",
-     "w": 271,
-     "h": 195
-    },
-    {
-     "src": "stickers/paper/061.webp",
-     "name": "별",
-     "w": 270,
-     "h": 276
-    },
-    {
-     "src": "stickers/paper/062.webp",
-     "name": "풍선",
-     "w": 100,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/063.webp",
-     "name": "볼링핀",
-     "w": 271,
-     "h": 245
-    },
-    {
-     "src": "stickers/paper/064.webp",
-     "name": "홍차",
-     "w": 270,
-     "h": 257
-    },
-    {
-     "src": "stickers/paper/065.webp",
-     "name": "지구본",
-     "w": 274,
-     "h": 259
-    },
-    {
-     "src": "stickers/paper/066.webp",
-     "name": "막대사탕",
-     "w": 180,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/067.webp",
-     "name": "행글라이더",
-     "w": 265,
-     "h": 152
-    },
-    {
-     "src": "stickers/paper/068.webp",
-     "name": "열기구",
-     "w": 194,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/069.webp",
-     "name": "실크해트",
-     "w": 271,
-     "h": 261
-    },
-    {
-     "src": "stickers/paper/070.webp",
-     "name": "꽃",
-     "w": 271,
-     "h": 269
-    },
-    {
-     "src": "stickers/paper/071.webp",
-     "name": "햄버거",
-     "w": 272,
-     "h": 218
-    },
-    {
-     "src": "stickers/paper/072.webp",
-     "name": "여성기호",
-     "w": 187,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/073.webp",
-     "name": "알림",
-     "w": 271,
-     "h": 229
-    },
-    {
-     "src": "stickers/paper/074.webp",
-     "name": "미소",
-     "w": 272,
-     "h": 250
-    },
-    {
-     "src": "stickers/paper/075.webp",
-     "name": "헤드폰",
-     "w": 272,
-     "h": 230
-    },
-    {
-     "src": "stickers/paper/076.webp",
-     "name": "낚시",
-     "w": 271,
-     "h": 157
-    },
-    {
-     "src": "stickers/paper/077.webp",
-     "name": "대화중",
-     "w": 272,
-     "h": 229
-    },
-    {
-     "src": "stickers/paper/078.webp",
-     "name": "자전거",
-     "w": 271,
-     "h": 185
-    },
-    {
-     "src": "stickers/paper/079.webp",
-     "name": "고양이",
-     "w": 263,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/080.webp",
-     "name": "달걀",
-     "w": 208,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/081.webp",
-     "name": "퍼즐",
-     "w": 224,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/082.webp",
-     "name": "남성기호",
-     "w": 240,
-     "h": 275
-    },
-    {
-     "src": "stickers/paper/083.webp",
-     "name": "트로피",
-     "w": 250,
-     "h": 278
-    },
-    {
-     "src": "stickers/paper/084.webp",
-     "name": "와인",
-     "w": 135,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/085.webp",
-     "name": "딸기",
-     "w": 202,
-     "h": 270
-    },
-    {
-     "src": "stickers/paper/086.webp",
-     "name": "색상견본",
-     "w": 245,
-     "h": 268
-    },
-    {
-     "src": "stickers/paper/087.webp",
-     "name": "공유",
-     "w": 239,
-     "h": 273
-    },
-    {
-     "src": "stickers/paper/088.webp",
-     "name": "카약",
-     "w": 149,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/089.webp",
-     "name": "원그래프",
-     "w": 270,
-     "h": 270
-    },
-    {
-     "src": "stickers/paper/090.webp",
-     "name": "밀크셰이크",
-     "w": 173,
-     "h": 270
-    },
-    {
-     "src": "stickers/paper/091.webp",
-     "name": "평화",
-     "w": 273,
-     "h": 272
-    },
-    {
-     "src": "stickers/paper/092.webp",
-     "name": "노트",
-     "w": 209,
-     "h": 278
-    },
-    {
-     "src": "stickers/paper/093.webp",
-     "name": "버스",
-     "w": 273,
-     "h": 143
-    },
-    {
-     "src": "stickers/paper/094.webp",
-     "name": "구명조끼",
-     "w": 221,
-     "h": 276
-    },
-    {
-     "src": "stickers/paper/095.webp",
-     "name": "리본",
-     "w": 196,
-     "h": 274
-    },
-    {
-     "src": "stickers/paper/096.webp",
-     "name": "스쿠터",
-     "w": 272,
-     "h": 205
-    },
-    {
-     "src": "stickers/paper/097.webp",
-     "name": "시계",
-     "w": 272,
-     "h": 265
-    },
-    {
-     "src": "stickers/paper/098.webp",
-     "name": "슬레이트",
+     "src": "stickers/rabbit/40.webp",
+     "name": "달 토끼",
      "w": 252,
      "h": 264
     },
     {
-     "src": "stickers/paper/099.webp",
-     "name": "와이파이",
-     "w": 271,
-     "h": 232
+     "src": "stickers/rabbit/44.webp",
+     "name": "신난 토끼",
+     "w": 288,
+     "h": 256
     },
     {
-     "src": "stickers/paper/100.webp",
-     "name": "상하화살표",
-     "w": 268,
-     "h": 217
+     "src": "stickers/rabbit/49.webp",
+     "name": "딸기집 토끼",
+     "w": 340,
+     "h": 280
     },
     {
-     "src": "stickers/paper/101.webp",
-     "name": "지구",
-     "w": 273,
-     "h": 248
+     "src": "stickers/rabbit/51.webp",
+     "name": "버블티 토끼",
+     "w": 288,
+     "h": 488
     },
     {
-     "src": "stickers/paper/102.webp",
-     "name": "여객선",
-     "w": 271,
-     "h": 144
+     "src": "stickers/rabbit/55.webp",
+     "name": "졸린 토끼",
+     "w": 256,
+     "h": 240
     },
     {
-     "src": "stickers/paper/103.webp",
-     "name": "리모컨",
-     "w": 262,
-     "h": 277
+     "src": "stickers/rabbit/60.webp",
+     "name": "케이크 토끼",
+     "w": 240,
+     "h": 284
     },
     {
-     "src": "stickers/paper/104.webp",
-     "name": "꽃선인장",
-     "w": 187,
-     "h": 274
+     "src": "stickers/rabbit/63.webp",
+     "name": "당근 토끼 2",
+     "w": 252,
+     "h": 284
+    }
+   ]
+  },
+  {
+   "name": "토끼 말풍선",
+   "items": [
+    {
+     "src": "stickers/rabbit/01.webp",
+     "name": "좋은 하루",
+     "w": 232,
+     "h": 148,
+     "size": 0.2
     },
     {
-     "src": "stickers/paper/105.webp",
-     "name": "전구",
-     "w": 236,
-     "h": 272
+     "src": "stickers/rabbit/16.webp",
+     "name": "고마워",
+     "w": 196,
+     "h": 152,
+     "size": 0.2
     },
     {
-     "src": "stickers/paper/106.webp",
-     "name": "자동차",
-     "w": 273,
-     "h": 118
+     "src": "stickers/rabbit/35.webp",
+     "name": "행복해",
+     "w": 204,
+     "h": 152,
+     "size": 0.2
     },
     {
-     "src": "stickers/paper/107.webp",
-     "name": "요트",
-     "w": 243,
-     "h": 273
+     "src": "stickers/rabbit/37.webp",
+     "name": "반가워",
+     "w": 208,
+     "h": 140,
+     "size": 0.2
     },
     {
-     "src": "stickers/paper/108.webp",
-     "name": "플라밍고",
-     "w": 199,
-     "h": 270
+     "src": "stickers/rabbit/41.webp",
+     "name": "잘했어",
+     "w": 192,
+     "h": 148,
+     "size": 0.2
+    },
+    {
+     "src": "stickers/rabbit/52.webp",
+     "name": "냠냠",
+     "w": 148,
+     "h": 136,
+     "size": 0.2
+    },
+    {
+     "src": "stickers/rabbit/56.webp",
+     "name": "졸려",
+     "w": 188,
+     "h": 152,
+     "size": 0.2
+    }
+   ]
+  },
+  {
+   "name": "꾸미기 소품",
+   "items": [
+    {
+     "src": "stickers/rabbit/03.webp",
+     "name": "하트 풍선",
+     "w": 104,
+     "h": 104,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/04.webp",
+     "name": "노란 하트",
+     "w": 96,
+     "h": 96,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/05.webp",
+     "name": "분홍 딸기",
+     "w": 120,
+     "h": 148,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/07.webp",
+     "name": "하얀 꽃",
+     "w": 120,
+     "h": 124,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/11.webp",
+     "name": "책",
+     "w": 164,
+     "h": 160,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/13.webp",
+     "name": "해",
+     "w": 124,
+     "h": 132,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/14.webp",
+     "name": "노란 꽃",
+     "w": 112,
+     "h": 112,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/17.webp",
+     "name": "잼",
+     "w": 116,
+     "h": 128,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/18.webp",
+     "name": "하트",
+     "w": 92,
+     "h": 92,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/19.webp",
+     "name": "튤립",
+     "w": 104,
+     "h": 152,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/21.webp",
+     "name": "네잎클로버",
+     "w": 108,
+     "h": 140,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/22.webp",
+     "name": "무지개",
+     "w": 264,
+     "h": 176,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/24.webp",
+     "name": "딸기",
+     "w": 112,
+     "h": 116,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/26.webp",
+     "name": "큰 하트",
+     "w": 136,
+     "h": 124,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/27.webp",
+     "name": "분홍 꽃",
+     "w": 112,
+     "h": 160,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/29.webp",
+     "name": "별",
+     "w": 104,
+     "h": 104,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/33.webp",
+     "name": "카메라",
+     "w": 144,
+     "h": 132,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/34.webp",
+     "name": "하늘 구름",
+     "w": 136,
+     "h": 104,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/39.webp",
+     "name": "빨간 하트",
+     "w": 100,
+     "h": 100,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/43.webp",
+     "name": "클로버",
+     "w": 120,
+     "h": 140,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/45.webp",
+     "name": "분홍 하트",
+     "w": 100,
+     "h": 100,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/47.webp",
+     "name": "우유",
+     "w": 144,
+     "h": 180,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/50.webp",
+     "name": "케이크",
+     "w": 136,
+     "h": 128,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/57.webp",
+     "name": "연분홍 하트",
+     "w": 92,
+     "h": 92,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/59.webp",
+     "name": "노란 별",
+     "w": 100,
+     "h": 100,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/61.webp",
+     "name": "파란 구름",
+     "w": 192,
+     "h": 136,
+     "size": 0.13
+    },
+    {
+     "src": "stickers/rabbit/62.webp",
+     "name": "새싹 꽃",
+     "w": 104,
+     "h": 100,
+     "size": 0.13
     }
    ]
   }

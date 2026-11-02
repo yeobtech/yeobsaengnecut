@@ -1552,8 +1552,9 @@ function T(layout, name, mod) { const f = newFrame(layout); f.id = "tpl-" + name
 const txt = (p) => ({ id: uid(), type: "text", text: "TEXT", font: "Pretendard", size: 60, color: "#222222", bold: true, italic: false, align: "center", spacing: 0, lh: 1.2, strokeW: 0, strokeC: "#ffffff", shadow: false, bgOn: false, bgC: "#ffffff", rot: 0, opacity: 1, ...p });
 // 그림 스티커 (stickers/ 폴더): 긴 쪽 길이를 size로 맞춤
 const STK = {
-  "pastel/01": ["햇살", 237, 232], "pastel/09": ["컵케이크", 209, 261], "pastel/12": ["체크하트", 226, 177], "pastel/13": ["하트메모", 223, 207],
-  "paper/026": ["트리", 204, 272], "paper/041": ["선물", 242, 281], "paper/061": ["별", 270, 276], "paper/062": ["풍선", 100, 273],
+  "rabbit/26": ["큰 하트", 136, 124], "rabbit/13": ["해", 124, 132], "rabbit/12": ["리본 토끼", 220, 284], "rabbit/45": ["분홍 하트", 100, 100],
+  "rabbit/29": ["별", 104, 104], "rabbit/60": ["케이크 토끼", 240, 284], "rabbit/03": ["하트 풍선", 104, 104], "rabbit/63": ["당근 토끼", 252, 284],
+  "rabbit/01": ["좋은 하루", 232, 148],
 };
 const pic = (key, size, p) => {
   const [name, w, h] = STK[key], k = size / Math.max(w, h);
@@ -1575,7 +1576,7 @@ const TEMPLATES = [
     Object.assign(f.bg, { type: "pattern", pattern: "gingham", c1: "#ffffff", c2: "#f7a8c0", scale: 0.8 });
     Object.assign(f.slot, { shape: "heart", gap: 10, bottom: 280 });
     f.elements.push(txt({ text: "LOVE YOU", font: "Pacifico", size: 110, color: "#d6336c", strokeW: 8, x: 600, y: 1640 }),
-      pic("pastel/12", 150, { x: 140, y: 1640, rot: -12 }), pic("pastel/12", 150, { x: 1060, y: 1640, rot: 12 }),
+      pic("rabbit/26", 150, { x: 140, y: 1640, rot: -12 }), pic("rabbit/26", 150, { x: 1060, y: 1640, rot: 12 }),
       txt({ text: "{date}", size: 34, bold: false, color: "#c2255c", x: 600, y: 1745 }));
   }),
   T("1x4", "하늘 구름", (f) => {
@@ -1584,22 +1585,22 @@ const TEMPLATES = [
     f.elements.push(shp({ shape: "cloud", fill: "#ffffff", w: 200, h: 110, x: 120, y: 1700, behind: true }),
       shp({ shape: "cloud", fill: "#ffffff", w: 170, h: 95, x: 500, y: 1735, behind: true }),
       txt({ text: "오늘도 맑음", font: "Jua", bold: false, size: 50, color: "#2f6db5", x: 300, y: 1700, bgOn: true, bgC: "#ffffff" }),
-      pic("pastel/01", 120, { x: 530, y: 76, rot: 10 }));
+      pic("rabbit/13", 120, { x: 530, y: 76, rot: 10 }));
   }),
   T("2x2", "메리 크리스마스", (f) => {
     Object.assign(f.bg, { type: "pattern", pattern: "snow", c1: "#b3202a", c2: "#ffffff", scale: 0.9 });
     Object.assign(f.slot, { shape: "round", radius: 30, borderW: 10, borderC: "#ffffff" });
     f.elements.push(txt({ text: "Merry Christmas", font: "Pacifico", size: 100, color: "#ffffff", x: 600, y: 1640, shadow: true }),
-      pic("paper/026", 170, { x: 110, y: 1640 }), pic("paper/041", 150, { x: 1090, y: 1645 }),
-      pic("paper/061", 80, { x: 80, y: 74, rot: -10 }), pic("paper/061", 60, { x: 1130, y: 90, rot: 12 }),
+      pic("rabbit/12", 180, { x: 110, y: 1640 }), pic("rabbit/45", 110, { x: 1090, y: 1645, rot: 10 }),
+      pic("rabbit/29", 80, { x: 80, y: 74, rot: -10 }), pic("rabbit/29", 60, { x: 1130, y: 90, rot: 12 }),
       txt({ text: "{year}", size: 34, bold: false, color: "#ffe3e3", spacing: 8, x: 600, y: 1750 }));
   }),
   T("2x2", "해피 버스데이", (f) => {
     Object.assign(f.bg, { type: "pattern", pattern: "confetti", c1: "#fff7e8", c2: "#ff6b6b" });
     Object.assign(f.slot, { shape: "round", radius: 40, borderW: 8, borderC: "#ffffff", shadow: true });
     f.elements.push(txt({ text: "HAPPY BIRTHDAY", font: "Black Han Sans", size: 92, color: "#ff6b6b", strokeW: 10, strokeC: "#ffffff", x: 600, y: 1630 }),
-      pic("pastel/09", 130, { x: 600, y: 1735 }), pic("paper/062", 190, { x: 90, y: 1600, rot: -12 }),
-      pic("paper/041", 140, { x: 1110, y: 1605, rot: 10 }));
+      pic("rabbit/03", 90, { x: 600, y: 1740 }), pic("rabbit/60", 140, { x: 76, y: 1625, rot: -8 }),
+      pic("rabbit/63", 135, { x: 1124, y: 1625, rot: 8 }));
   }),
   T("1x3", "레트로 체크", (f) => {
     Object.assign(f.bg, { type: "pattern", pattern: "check", c1: "#fff6dc", c2: "#f4dfa4" });
@@ -1615,7 +1616,7 @@ const TEMPLATES = [
   T("1x1", "폴라로이드", (f) => {
     f.elements.push(txt({ text: "우리의 하루", font: "Gaegu", bold: true, size: 104, color: "#333333", x: 600, y: 1560, rot: -3 }),
       txt({ text: "{date}", font: "Gaegu", bold: false, size: 44, color: "#777777", x: 600, y: 1690, rot: -3 }),
-      pic("pastel/13", 120, { x: 600, y: 72, rot: -6 }));
+      pic("rabbit/01", 170, { x: 600, y: 72, rot: -6 }));
   }),
   T("1x4", "보라 아치", (f) => {
     Object.assign(f.bg, { type: "gradient", c1: "#c9b6ff", c2: "#ffd6e8", angle: 160 });
@@ -2482,7 +2483,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ── 왼쪽 패널 ── */
-// 그림 스티커 목록: stickers/index.json (파스텔 16개 · 종이 스티커 108개)
+// 그림 스티커 목록: stickers/index.json (토끼 17개 · 토끼 말풍선 7개 · 꾸미기 소품 27개)
 let STICKER_PACKS = null;
 fetch("stickers/index.json").then((r) => r.json()).then((j) => { STICKER_PACKS = j.packs; if (ed.leftTab === "sticker") refreshLeft(); }).catch(() => (STICKER_PACKS = []));
 // 말풍선 스티커: 흰 바탕 + 검은 테두리, 붙이자마자 글자 칸에 커서
@@ -2496,7 +2497,7 @@ function focusElText() {
   const t = document.querySelector('#rightPanel [data-k="text"]'); t?.focus(); t?.select();
 }
 function addSticker(it) {
-  const k = W() * 0.22 / Math.max(it.w, it.h);
+  const k = W() * (it.size || 0.22) / Math.max(it.w, it.h);
   asset(it.src);
   addElement({ type: "image", src: it.src, name: it.name, w: Math.round(it.w * k), h: Math.round(it.h * k), clip: "rect" });
 }
