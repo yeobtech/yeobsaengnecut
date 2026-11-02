@@ -547,6 +547,16 @@
   .pickGrid button i { position: absolute; top: 8px; left: 8px; width: 34px; height: 34px; border-radius: 99px; display: grid; place-items: center;
     background: rgba(0,0,0,.45); color: #fff; font-style: normal; font-weight: 800; font-size: 17px; }
   .pickGrid button.on i { background: var(--pop); }
+  /* 선생님 모드 단계 버튼 (시간 제한 없음) */
+  .flowBar { gap: 6px; overflow-x: auto; justify-content: flex-start; }
+  .flowBar::before, .flowBar::after { content: ""; flex: 1; }
+  .flowBar .fbTag { flex: none; font-size: 11px; letter-spacing: .08em; color: rgba(243,238,236,.5); margin-right: 4px; white-space: nowrap; }
+  .flowBar button { flex: none; padding: 9px 14px; border: 0; border-radius: 12px; background: rgba(255,255,255,.08); color: rgba(243,238,236,.8); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .flowBar button:hover { background: rgba(255,255,255,.18); color: #fff; }
+  .flowBar button.now { background: #fff; color: #161414; }
+  .flowBar .fbReset { background: transparent; border: 1px solid rgba(255,255,255,.25); margin-left: 4px; }
+  @media (max-width: 760px) { .flowBar .fbTag { display: none; } .flowBar button { padding: 8px 10px; font-size: 13px; } }
+  @media print { .flowBar { display: none !important; } }
   /* 꾸미기 단계: 프레임 만들기에서 순서대로 */
   .stepList, .stepNav { display: none; }
   body[data-phase=decor] .stepList { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
@@ -562,7 +572,7 @@
   .stepHead { display: flex; align-items: center; gap: 8px; margin: -2px 0 12px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--pop) 10%, transparent); }
   .stepHead b { font-size: 15px; } .stepHead span { font-size: 13px; color: var(--text); line-height: 1.45; }
   .stepHead em { flex: none; font-style: normal; font-size: 12px; font-weight: 700; color: #fff; background: var(--pop); border-radius: 99px; padding: 3px 9px; }
-  body[data-phase=decor] .tabs, body[data-phase=decor] .vtabs, body[data-phase=decor] #edName, body[data-phase=decor] #newBtn,
+  body.kiosk[data-phase=decor] .tabs, body[data-phase=decor] .vtabs, body[data-phase=decor] #edName, body[data-phase=decor] #newBtn,
   body[data-phase=decor] #exportPngBtn, body[data-phase=decor] #useBtn, body[data-phase=decor] #tplFilter, body[data-phase=decor] .layoutChoose { display: none !important; }
   body[data-phase=decor] #editor .left { grid-template-columns: 1fr; }
   body[data-phase=decor] .zoombar label.row { display: none; }
@@ -887,6 +897,11 @@
   <button data-m="close" role="menuitem">닫기</button>
 </div>
 <div class="lpRing" id="lpRing"></div>
+<nav class="limitBar flowBar" id="flowBar" hidden aria-label="단계 이동">
+  <span class="fbTag">선생님 모드 · 단계 이동</span>
+  <button data-go="size">① 크기</button><button data-go="shoot">② 촬영</button><button data-go="pick">③ 사진 고르기</button><button data-go="decor">④ 꾸미기</button><button data-go="print">⑤ 인쇄</button>
+  <button data-go="reset" class="fbReset">처음으로</button>
+</nav>
 <div class="limitBar" id="limitPill" hidden aria-live="polite">
   <div class="lbSeg" id="lbShoot"><span class="lbName">📸 촬영</span><b class="lbTime">3:00</b><i class="lbFill"></i></div>
   <span class="lbArrow">→</span>
@@ -3256,7 +3271,7 @@ function setKiosk(on) {
   if (on) nextPerson(false); else { resetSession(); if (booth.frame) boothSetFrame(booth.frame); }
 }
 // 결과를 지우고 처음 상태로: 앞 학생 사진이 다음 학생에게 보이지 않게
-function nextPerson(auto) {
+function nextPerson(auto, quiet) {
   if (booth.busy) return;
   resetSession();
   clearInterval(kiosk.timer); kiosk.timer = null; $("idleNote").hidden = true;
@@ -3274,6 +3289,7 @@ function nextPerson(auto) {
   switchTab("booth"); setBoothControls(true);
   renderThumbs();
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (quiet) { toast("처음으로 돌아왔어요. 사진은 지웠어요."); return; }
   openConsent();
   toast(auto ? "한동안 아무도 없어서 처음 화면으로 돌아왔어요." : "다음 친구 차례예요! 앞 사람 사진은 화면에서 지웠어요.");
 }
@@ -3373,8 +3389,10 @@ const gateOpen = () => !$("consentModal").hidden || !$("guideModal").hidden || !
 const mmss = (t) => `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 function updateLimitPill() {
   const bar = $("limitPill"); if (!bar) return;
-  const on = (sess.phase === "shoot" || sess.phase === "decor") && !gateOpen();
-  bar.hidden = !on; document.body.classList.toggle("timing", on);
+  const flow = !kiosk.on && !gateOpen() && $("pickModal").hidden;
+  const on = kiosk.on && (sess.phase === "shoot" || sess.phase === "decor") && !gateOpen();
+  bar.hidden = !on; $("flowBar").hidden = !flow; document.body.classList.toggle("timing", on || flow);
+  if (flow) updateFlowBar();
   if (!on) return;
   const seg = (id, left, total, state) => {
     const el = $(id);
@@ -3397,6 +3415,7 @@ function finishShoot(early) {
   if (miss.length && booth.stream) { toast("촬영 시간이 끝났어요! 남은 컷을 바로 찍을게요."); runSequence(miss); return; }
   const got = booth.shots.filter(Boolean);
   if (!got.length) { nextPerson(true); return; }
+  sess.raw = booth.shots.slice();
   if (got.length > need) { openPick(got, need, early); return; }
   startDecor(got, early);
 }
@@ -3458,17 +3477,17 @@ function openPick(got, need, early) {
     };
     box.appendChild(b);
   });
-  renderPick(); $("pickModal").hidden = false;
+  renderPick(); $("pickModal").hidden = false; updateLimitPill();
 }
 function renderPick() {
   [...$("pickGrid").children].forEach((b, i) => { const k = pick.order.indexOf(i); b.classList.toggle("on", k >= 0); b.querySelector("i").textContent = k >= 0 ? k + 1 : ""; });
   const left = pick.need - pick.order.length;
   $("pickOk").disabled = left > 0;
-  $("pickNote").textContent = left > 0 ? `${left}장 더 골라 주세요` : `${pick.left}초 뒤 이 사진으로 넘어가요`;
+  $("pickNote").textContent = left > 0 ? `${left}장 더 골라 주세요` : kiosk.on ? `${pick.left}초 뒤 이 사진으로 넘어가요` : "다 골랐어요";
 }
 $("pickOk").onclick = () => { if (pick.order.length === pick.need) startDecor(pick.order.map((i) => pick.got[i]), pick.early); };
 setInterval(() => {
-  if ($("pickModal").hidden) return;
+  if ($("pickModal").hidden || !kiosk.on) return;
   if (--pick.left > 0) return renderPick();
   // 시간이 끝나면 모자란 칸은 아직 안 고른 사진으로 채움
   for (let i = 0; pick.order.length < pick.need && i < pick.got.length; i++) if (!pick.order.includes(i)) pick.order.push(i);
@@ -3485,7 +3504,7 @@ function finishDecor(auto) {
   toast(auto ? "꾸미기 시간이 끝났어요. 이제 인쇄해요! 🖨️" : "완성! 이제 인쇄해요. 🖨️");
 }
 setInterval(() => {
-  if (gateOpen()) return;
+  if (gateOpen() || !kiosk.on) return;   // 선생님 모드는 시간 제한 없음
   if (sess.phase === "shoot" && !sess.shootEnding) {
     if (--sess.shootLeft === 60) toast("📸 촬영 시간이 1분 남았어요!");
     if (sess.shootLeft <= 0) finishShoot(false);
@@ -3541,9 +3560,11 @@ function chooseLayout(key) {
   const d = kiosk.on && kiosk.defaults;
   const def = d && (d.draft ? store.get("m4c.draft", null) : allFrames().find((x) => x.id === d.frameId));
   const f = def?.layout === key ? (d.draft ? { ...def, _draft: true } : def) : allFrames().find((x) => x.layout === key) || { ...newFrame(key), name: "기본 흰색" };
+  if (!kiosk.on) { sess.photos = null; sess.raw = null; setPhase("shoot"); }
   boothSetFrame(f);
   $("sizeName").textContent = `${LAYOUTS[key].name} · ${LAYOUTS[key].sub}`;
   if (sess.phase === "gate") setPhase("shoot"); else updateLimitPill();
+  if (!kiosk.on) { switchTab("booth"); window.scrollTo(0, 0); }
   toast(`${LAYOUTS[key].name}로 찍어요. 촬영 시작을 눌러 주세요!`);
 }
 $("relayoutBtn").onclick = () => {
@@ -3568,9 +3589,49 @@ document.addEventListener("keydown", (e) => {
     if (Math.abs(dx) > 50) dx < 0 ? (guide.i < guide.n - 1 && showGuide(guide.i + 1)) : showGuide(guide.i - 1); }); }
 resetSession();
 
+/* 선생님 모드 단계 이동: ① 크기 ② 촬영 ③ 사진 고르기 ④ 꾸미기 ⑤ 인쇄, 아무 순서로나 */
+function updateFlowBar() {
+  const p = sess.phase;
+  const cur = p === "decor" ? "decor" : p === "print" ? "print" : !$("booth").hidden ? "shoot" : "";
+  $("flowBar").querySelectorAll("button[data-go]").forEach((b) => b.classList.toggle("now", b.dataset.go === cur));
+}
+function flowGo(k) {
+  if (kiosk.on || booth.busy) return;
+  const need = computeSlots(booth.frame).length;
+  const shots = () => (sess.raw || booth.shots).filter(Boolean);
+  if (k === "reset") return nextPerson(false, true);
+  if (k === "size") return openLayout();
+  if (k === "shoot") {
+    if (sess.phase === "decor" && !$("editor").hidden) switchTab("booth");
+    const raw = sess.raw; sess.photos = null; sess.raw = null; sess.shootEnding = false;
+    setPhase("shoot"); boothSetFrame(booth.frame);
+    if (raw && raw.length === booth.shots.length) { booth.shots = raw; renderThumbs(); }
+    updatePhaseUI(); switchTab("booth"); window.scrollTo(0, 0); return;
+  }
+  if (k === "pick") {
+    if (sess.photos && shots().length >= need) return openPick(shots(), need, true);
+    if (booth.shots.filter(Boolean).length < need) return toast(`먼저 사진을 ${need}장 이상 찍어 주세요.`);
+    if (sess.phase !== "shoot") setPhase("shoot");
+    return finishShoot(true);
+  }
+  if (k === "decor") {
+    if (!sess.photos) return flowGo("pick");
+    if (sess.phase !== "decor") setPhase("decor");
+    if ($("editor").hidden) { switchTab("editor"); showStep(ed.step || 0); }
+    window.scrollTo(0, 0); return;
+  }
+  if (k === "print") {
+    if (!sess.photos) return toast("먼저 사진을 찍고 골라 주세요.");
+    if (sess.phase === "decor") return finishDecor(false);
+    setPhase("print"); switchTab("booth"); compose();
+    $("heroResult").closest(".hero").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+$("flowBar").addEventListener("click", (e) => { const b = e.target.closest("button[data-go]"); if (b) flowGo(b.dataset.go); });
+
 /* ════════════════ 탭 전환·시작 ════════════════ */
 function switchTab(tab) {
-  if (tab === "editor" && (sess.phase === "shoot" || sess.phase === "print")) {
+  if (kiosk.on && tab === "editor" && (sess.phase === "shoot" || sess.phase === "print")) {
     toast(sess.phase === "shoot" ? "먼저 사진을 찍어요! 꾸미기는 촬영이 끝난 다음이에요." : "꾸미기 시간이 끝났어요. 이제 인쇄해 주세요.");
     return false;
   }
