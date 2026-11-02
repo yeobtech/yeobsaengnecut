@@ -1327,6 +1327,21 @@ function elBox(el) {
     default: return { w: el.w, h: el.h };
   }
 }
+// 말풍선 몸통 가운데에 글자를 넣고, 넘치지 않게 글자 크기를 줄임 (뒤집어도 글자는 바로)
+function drawBubbleText(ctx, el) {
+  const lines = resolveText(el.text).split("\n");
+  const cy = el.shape === "bubbleBurst" ? 0 : el.shape === "bubbleThought" ? -0.1 : el.shape === "bubble" ? -0.1 : -0.07;
+  const bw = el.w * (el.shape === "bubbleBurst" ? 0.55 : 0.74), bh = el.h * (el.shape === "bubbleBurst" ? 0.5 : 0.56);
+  const font = (px) => `${el.bold === false ? 400 : 700} ${px}px "${el.font || "Jua"}", "Pretendard", sans-serif`;
+  let px = Math.min(bh / lines.length / 1.2, el.w * 0.2);
+  ctx.save();
+  ctx.scale(el.flipX ? -1 : 1, el.flipY ? -1 : 1); ctx.shadowColor = "transparent";
+  for (; px > 8; px *= 0.92) { ctx.font = font(px); if (Math.max(...lines.map((l) => ctx.measureText(l).width)) <= bw) break; }
+  ctx.font = font(px); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = el.color || "#222222";
+  const lh = px * 1.2, y0 = el.h * cy - (lines.length - 1) * lh / 2;
+  lines.forEach((l, i) => ctx.fillText(l, 0, y0 + i * lh));
+  ctx.restore();
+}
 function drawElement(ctx, el) {
   ctx.save();
   ctx.globalAlpha = el.opacity ?? 1;
@@ -1362,6 +1377,7 @@ function drawElement(ctx, el) {
       shapePath(ctx, el.shape, -el.w / 2, -el.h / 2, el.w, el.h, el.radius || 0);
       if (el.strokeW > 0) { ctx.lineJoin = "round"; ctx.lineWidth = el.strokeW * 2; ctx.strokeStyle = el.strokeC; ctx.stroke(); ctx.shadowColor = "transparent"; }
       if (el.fillOn !== false) { ctx.fillStyle = el.fill; ctx.fill(); }
+      if (el.text && isBubble(el.shape)) drawBubbleText(ctx, el);
       break;
     case "image": {
       const img = asset(el.src);
@@ -2368,7 +2384,7 @@ cv.addEventListener("pointerup", endDrag);
 cv.addEventListener("pointercancel", endDrag);
 cv.addEventListener("dblclick", () => {
   const el = selEl();
-  if (el?.type === "text") { ed.rightTab = "props"; refreshRight(); const t = document.querySelector('#rightPanel [data-k="text"]'); t?.focus(); t?.select(); }
+  if (el?.type === "text" || (el?.type === "shape" && isBubble(el.shape))) focusElText();
 });
 
 /* 꾹 누르기(0.5초) 또는 오른쪽 클릭: 삭제·복제 메뉴 — 아이패드에서 쉽게 지우기 */
@@ -2469,6 +2485,16 @@ document.addEventListener("keydown", (e) => {
 // 그림 스티커 목록: stickers/index.json (파스텔 16개 · 종이 스티커 108개)
 let STICKER_PACKS = null;
 fetch("stickers/index.json").then((r) => r.json()).then((j) => { STICKER_PACKS = j.packs; if (ed.leftTab === "sticker") refreshLeft(); }).catch(() => (STICKER_PACKS = []));
+// 말풍선 스티커: 흰 바탕 + 검은 테두리, 붙이자마자 글자 칸에 커서
+function addBubble(k) {
+  const s = Math.round(W() * 0.26);
+  addElement(shp({ shape: k, w: Math.round(s * 1.4), h: s, fill: "#ffffff", strokeW: 5, strokeC: "#222222", radius: s * 0.15, text: "안녕!", font: "Jua", color: "#222222" }));
+  focusElText();
+}
+function focusElText() {
+  ed.rightTab = "props"; refreshRight();
+  const t = document.querySelector('#rightPanel [data-k="text"]'); t?.focus(); t?.select();
+}
 function addSticker(it) {
   const k = W() * 0.22 / Math.max(it.w, it.h);
   asset(it.src);
@@ -2583,8 +2609,7 @@ function refreshLeftPanel() {
         lg.appendChild(b);
       });
       const ss = $("slotShapes");
-      ["rect", "round", "circle", "heart", "star", "arch", "cloud", "flower", "diamond", "sparkle",
-        "bubble", "bubbleOval", "bubbleWavy", "bubbleBox", "bubbleCloud", "bubbleThought", "bubbleBurst"].forEach((k) => {
+      ["rect", "round", "circle", "heart", "star", "arch", "cloud", "flower", "diamond", "sparkle"].forEach((k) => {
         const b = document.createElement("button"); b.setAttribute("aria-pressed", k === s.shape);
         b.className = "btn"; b.style.padding = "6px";
         b.appendChild(shapeIcon(k, "#adb5bd")); b.appendChild(document.createTextNode(SHAPES[k]));
@@ -2657,9 +2682,16 @@ function refreshLeftPanel() {
     }
     case "sticker": {
       p.innerHTML = `<h2>스티커</h2><p class="hint">누르면 가운데에 붙어요. 끌어서 옮기고, 파란 점으로 크기, 흰 점으로 회전해요.</p>
+        <h3>말풍선 <span class="hint">· 붙이면 바로 글자를 쓸 수 있어요</span></h3><div class="shapes" id="stBubbles"></div>
         ${!STICKER_PACKS ? '<p class="hint">스티커를 불러오는 중…</p>' : STICKER_PACKS.map((pk, pi) => `<h3>${esc(pk.name)}</h3><div class="stickers">${pk.items.map((it, i) => `<button data-st="${pi}:${i}" title="${esc(it.name)}"><img src="${esc(it.src)}" alt="${esc(it.name)}" loading="lazy"></button>`).join("")}</div>`).join("")}
         <h3>내 스티커</h3><button class="btn primary" id="stickerUpload" style="width:100%">🖼 내 이미지로 스티커 만들기</button>
         <p class="hint">고른 뒤 ✂ 배경 지우기 창이 열려요. 파일을 화면에 끌어다 놓아도 돼요.</p>`;
+      Object.keys(SHAPES).filter(isBubble).forEach((k) => {
+        const b = document.createElement("button");
+        b.append(shapeIcon(k, "#ffffff", "#222222"), SHAPES[k]);
+        b.onclick = () => addBubble(k);
+        $("stBubbles").appendChild(b);
+      });
       p.querySelectorAll("[data-st]").forEach((b) => (b.onclick = () => { const [pi, i] = b.dataset.st.split(":"); addSticker(STICKER_PACKS[pi].items[i]); }));
       $("stickerUpload").onclick = () => pickImage((src) => openBgRemover(src, addImageElement));
       break;
@@ -2749,7 +2781,7 @@ function elLabel(el) {
   switch (el.type) {
     case "text": return "T  " + (resolveText(el.text).split("\n")[0] || "(빈 글자)");
     case "emoji": return el.char + "  스티커";
-    case "shape": return "⬟  " + SHAPES[el.shape];
+    case "shape": return isBubble(el.shape) && el.text ? "💬  " + resolveText(el.text).split("\n")[0] : "⬟  " + SHAPES[el.shape];
     case "image": return el.name ? "★  " + el.name : "🖼  이미지";
   }
   return el.type;
@@ -2804,6 +2836,9 @@ function refreshRight() {
     html += `<div style="font-size:54px;text-align:center;font-family:${EMOJI_FONT}">${el.char}</div>
       ${rangeField("el", "size", "크기", 12, Math.round(W() * 0.6), 1, el.size, "px")}`;
   } else if (el.type === "shape") {
+    if (isBubble(el.shape)) html += `<label class="field">말풍선 글자 <span class="hint">(줄 바꿈 가능)</span></label><textarea data-scope="el" data-k="text" placeholder="여기에 써요">${esc(el.text || "")}</textarea>
+      ${selectField("el", "font", "글꼴", fontOptions(el.font || "Jua"), el.font || "Jua")}
+      ${colorField("el", "color", "글자 색", el.color || "#222222")}`;
     html += `${selectField("el", "shape", "모양", SHAPES, el.shape)}
       ${rangeField("el", "w", "가로", 4, W(), 1, el.w, "px")}
       ${rangeField("el", "h", "세로", 2, H(), 1, el.h, "px")}
