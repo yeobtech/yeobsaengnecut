@@ -203,7 +203,13 @@
   .textpresets { display: flex; flex-direction: column; gap: 6px; }
   .textpresets button { text-align: center; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; font-size: 18px; color: var(--text); }
   .myframes { display: flex; flex-direction: column; gap: 6px; }
-  .myframes .item { display: flex; align-items: center; gap: 8px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; }
+  .canvaHelp { margin-top: 10px; font-size: 13px; line-height: 1.55; }
+  .canvaHelp summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
+  .canvaHelp ol { margin: 4px 0 6px; padding-left: 20px; }
+  .canvaHelp li { margin-bottom: 6px; }
+  .myframes .item { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 4px; padding: 6px; border: 1px solid var(--line); border-radius: 10px; }
+  .myframes .item canvas { grid-row: span 2; }
+  .myframes .acts { display: flex; gap: 4px; flex-wrap: wrap; }
   .myframes canvas { height: 64px; width: auto; border-radius: 3px; }
   .myframes .name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .right { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
@@ -709,12 +715,12 @@
     <div class="stepNav"><button class="btn" id="stepPrev">← 이전</button><button class="btn primary" id="stepNext">다음 →</button></div>
     <button class="btn" id="newBtn">새로 만들기</button>
     <span class="spacer"></span>
-    <button class="btn kioskHide" id="importBtn">불러오기</button>
-    <button class="btn kioskHide" id="exportJsonBtn">프레임 파일 내보내기</button>
+    <button class="btn kioskHide" id="importBtn" title="받은 프레임 파일이나 캔바에서 만든 PNG">불러오기</button>
+    <button class="btn kioskHide" id="exportJsonBtn" title="AirDrop·카톡·메일로 보내거나 파일로 저장">프레임 공유</button>
     <button class="btn" id="exportPngBtn" title="사진칸이 투명한 PNG">PNG 저장</button>
     <button class="btn kioskHide" id="saveBtn">내 프레임에 저장</button>
     <button class="btn dark" id="useBtn">이 프레임으로 촬영 →</button>
-    <input type="file" id="importFile" accept=".json,application/json" hidden>
+    <input type="file" id="importFile" accept=".json,application/json,image/png,image/*" hidden>
   </div>
 
   <div class="work">
@@ -1055,6 +1061,7 @@ function newFrame(layout = "1x4") {
 }
 
 function computeSlots(f) {
+  if (f.slots?.length) return f.slots.map((r) => ({ ...r }));   // 캔바에서 올린 프레임: 그림의 빈자리
   const L = LAYOUTS[f.layout], s = f.slot;
   const areaW = L.w - s.pad * 2, areaH = L.h - s.top - s.bottom;
   const w = (areaW - s.gap * (L.cols - 1)) / L.cols, h = (areaH - s.gap * (L.rows - 1)) / L.rows;
@@ -1267,9 +1274,47 @@ let onAssetLoad = () => {};
 function asset(src) {
   let a = assets.get(src);
   if (!a) {
-    a = new Image(); a.onload = () => { a._ok = true; onAssetLoad(); }; a.src = src; assets.set(src, a);
+    a = new Image(); a.onload = () => { a._ok = true; onAssetLoad(); }; assets.set(src, a);
+    if (src.startsWith("idb:")) imgStore.get(src.slice(4)).then((b) => { if (b) a.src = URL.createObjectURL(b); }).catch(() => {});
+    else a.src = src;
   }
   return a._ok ? a : null;
+}
+// 캔바 프레임처럼 큰 그림은 localStorage(약 5MB)를 금방 채우므로 IndexedDB에 두고, 프레임에는 "idb:열쇠"만 적어 둠
+const imgStore = (() => {
+  let dbp;
+  const open = () => (dbp ||= new Promise((res, rej) => {
+    const r = indexedDB.open("m4c-img", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("img");
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const run = async (mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => { const t = db.transaction("img", mode), req = fn(t.objectStore("img")); t.oncomplete = () => res(req.result); t.onerror = () => rej(t.error); });
+  };
+  return { get: (k) => run("readonly", (st) => st.get(k)), put: (k, v) => run("readwrite", (st) => st.put(v, k)) };
+})();
+const IDB_MIN = 150000;   // 이보다 긴 data: 그림은 IndexedDB로
+async function stashImage(src) {
+  if (!src?.startsWith("data:") || src.length < IDB_MIN) return src;
+  try {
+    const key = "img-" + uid(), blob = await (await fetch(src)).blob();
+    await imgStore.put(key, blob);
+    const a = new Image(); a.onload = () => { a._ok = true; onAssetLoad(); }; a.src = src; assets.set("idb:" + key, a);
+    return "idb:" + key;
+  } catch { return src; }
+}
+async function unstashImage(src) {
+  if (!src?.startsWith("idb:")) return src;
+  const b = await imgStore.get(src.slice(4)).catch(() => null);
+  return b ? new Promise((r) => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(b); }) : null;
+}
+// 프레임 안 그림 전부 옮기기 (fn: stashImage 또는 unstashImage)
+async function mapFrameImages(f, fn) {
+  const g = clone(f);
+  for (const el of g.elements) if (el.type === "image" && el.src) el.src = await fn(el.src);
+  if (g.bg?.image) g.bg.image = await fn(g.bg.image);
+  return g;
 }
 function drawCover(ctx, img, x, y, w, h) {
   const iw = img.videoWidth || img.naturalWidth || img.width, ih = img.videoHeight || img.naturalHeight || img.height;
@@ -2564,7 +2609,17 @@ function refreshLeftPanel() {
       p.innerHTML = `<h2>템플릿</h2><p class="hint">고르면 지금 캔버스가 바뀌어요. 실행 취소로 되돌릴 수 있어요.</p>
         <div class="seg" id="tplFilter" style="margin:8px 0">${Object.entries(layouts).map(([k, v]) => `<button class="btn sm" data-v="${k}" aria-pressed="${ed.tplLayoutFilter === k}">${v}</button>`).join("")}</div>
         <div class="tilegrid" id="tplGrid"></div>
-        <h3>내 프레임</h3><div class="myframes" id="myFrames"></div>`;
+        <h3>내 프레임</h3>
+        <div class="row kioskHide" style="margin:0 0 8px;gap:6px;flex-wrap:wrap"><button class="btn sm" id="mfCanva">＋ 캔바 PNG 올리기</button><button class="btn sm" id="mfImport">받은 파일 열기</button><button class="btn sm" id="mfAll">모두 내보내기</button></div>
+        <div class="myframes" id="myFrames"></div>
+        <details class="canvaHelp kioskHide"><summary>캔바에서 프레임 만드는 법</summary>
+          <ol>
+            <li><a href="https://www.canva.com" target="_blank" rel="noopener noreferrer">캔바</a>에서 <b>맞춤형 크기</b>로 새 디자인을 만들어요.<br>세로 4컷·3컷 <b>600×1800px</b> · 2×2·6컷·폴라로이드 <b>1200×1800px</b> · 가로 4컷 <b>1800×1200px</b></li>
+            <li>사진이 들어갈 자리를 비워 두세요. 아래 중 하나로 해요.<br>· 캔바 Pro: 다운로드할 때 <b>배경 투명</b>을 켜면 빈자리가 투명해져요.<br>· 무료: 사진 자리에 <b>초록색(#00FF00) 네모</b>를 놓아요. 앱이 초록을 지워요.</li>
+            <li><b>PNG</b>로 다운로드한 뒤 위의 <b>＋ 캔바 PNG 올리기</b>를 눌러요. 사진 자리를 찾아서 내 프레임에 저장해요.</li>
+          </ol>
+          <p class="hint">위에 스티커나 글자를 더 붙일 수도 있어요. 사진은 빈자리 모양대로 보여요.</p>
+        </details>`;
       const grid = $("tplGrid");
       TEMPLATES.filter((t) => ed.tplLayoutFilter === "all" || t.layout === ed.tplLayoutFilter).forEach((t) => {
         const b = document.createElement("button"); b.className = "tile";
@@ -2574,20 +2629,30 @@ function refreshLeftPanel() {
       });
       bindSeg($("tplFilter"), (v) => { ed.tplLayoutFilter = v; refreshLeft(); });
       const mf = $("myFrames"), list = myFrames().filter((fr) => sess.phase !== "decor" || fr.layout === sess.layout);
-      if (!list.length) mf.innerHTML = `<p class="hint">아직 저장한 프레임이 없어요. 위쪽의 💾 내 프레임에 저장을 누르면 여기와 촬영 화면에 나타나요.</p>`;
+      if (!list.length) mf.innerHTML = `<p class="hint">아직 저장한 프레임이 없어요. 위쪽의 <b>내 프레임에 저장</b>을 누르거나 캔바 PNG를 올리면 여기와 촬영 화면에 나타나요.</p>`;
+      $("mfCanva").onclick = () => { $("importFile").accept = "image/png,image/*"; $("importFile").click(); $("importFile").accept = ".json,application/json,image/png,image/*"; };
+      $("mfImport").onclick = () => $("importFile").click();
+      $("mfAll").onclick = () => { const all = myFrames(); if (!all.length) return toast("아직 저장한 프레임이 없어요"); shareFrames(all, `내프레임_${all.length}개.json`); };
       list.forEach((fr) => {
         const it = document.createElement("div"); it.className = "item";
         it.appendChild(frameThumb(fr, 64, { sample: true }));
         it.insertAdjacentHTML("beforeend", `<span class="name">${esc(fr.name)}</span>`);
         const open = document.createElement("button"); open.className = "btn sm"; open.textContent = "열기";
         open.onclick = () => { loadIntoEditor(fr); toast(`'${fr.name}'을(를) 열었어요`); };
+        const sh = document.createElement("button"); sh.className = "btn sm kioskHide"; sh.textContent = "공유";
+        sh.onclick = () => shareFrames([fr], `${fr.name}.json`);
         const del = document.createElement("button"); del.className = "btn sm kioskHide"; del.textContent = "삭제";
         del.onclick = () => { if (confirm(`'${fr.name}' 프레임을 삭제할까요?`)) { store.set("m4c.frames", myFrames().filter((x) => x.id !== fr.id)); refreshLeft(); renderFramePick(); } };
-        it.append(open, del); mf.appendChild(it);
+        const acts = document.createElement("div"); acts.className = "acts"; acts.append(open, sh, del);
+        it.append(acts); mf.appendChild(it);
       });
       break;
     }
     case "layout": {
+      if (f.slots) {
+        p.innerHTML = `<h2>사진칸</h2><p class="hint">캔바에서 올린 프레임이라 사진칸이 그림의 빈자리 ${f.slots.length}곳에 맞춰져 있어요. 칸 모양을 바꾸려면 캔바에서 고친 뒤 다시 올려 주세요.</p>`;
+        break;
+      }
       const s = f.slot, L = LAYOUTS[f.layout];
       p.innerHTML = `<h2>사진칸</h2>
         <div class="layoutChoose"><h3>레이아웃</h3><div class="tilegrid" id="layoutGrid"></div></div>
@@ -2644,7 +2709,7 @@ function refreshLeftPanel() {
         });
       }
       if (b.type === "image") {
-        $("bgImgBtn").onclick = () => pickImage((src) => { f.bg.image = src; commit(); refreshLeft(); draw(); });
+        $("bgImgBtn").onclick = () => pickImage(async (src) => { f.bg.image = await stashImage(src); commit(); refreshLeft(); draw(); });
         if ($("bgImgClear")) $("bgImgClear").onclick = () => { f.bg.image = null; commit(); refreshLeft(); draw(); };
       }
       const presets = [
@@ -2724,7 +2789,7 @@ function refreshLeftPanel() {
         <p class="hint" style="margin-top:8px">로고, 손글씨 스캔, 사진 등을 프레임 위에 올릴 수 있어요. 이미지는 이 기기 안에서만 쓰이고 어디로도 전송되지 않아요.</p>
         <button class="btn" id="imgBg" style="width:100%;margin-top:8px">배경 이미지로 쓰기</button>`;
       $("imgAdd").onclick = () => pickImage((src) => openBgRemover(src, addImageElement));
-      $("imgBg").onclick = () => pickImage((src) => { f.bg.type = "image"; f.bg.image = src; commit(); ed.leftTab = "bg"; refreshLeft(); draw(); });
+      $("imgBg").onclick = () => pickImage(async (src) => { f.bg.type = "image"; f.bg.image = await stashImage(src); commit(); ed.leftTab = "bg"; refreshLeft(); draw(); });
       break;
     }
   }
@@ -2738,6 +2803,7 @@ function shapeIcon(k, color, line) {
 function changeLayout(k) {
   const f = ed.frame, from = LAYOUTS[f.layout], to = LAYOUTS[k];
   if (k === f.layout) return;
+  if (f.slots) { toast("캔바에서 올린 프레임은 크기를 바꿀 수 없어요"); return; }
   const sx = to.w / from.w, sy = to.h / from.h, sz = Math.min(sx, sy);
   for (const el of f.elements) {
     el.x = Math.round(el.x * sx); el.y = Math.round(el.y * sy);
@@ -2772,9 +2838,9 @@ function processImageFile(file, cb) {
     rd.readAsDataURL(file);
   }
 }
-function addImageElement(src, iw, ih) {
+async function addImageElement(src, iw, ih) {
   const k = Math.min(W() * 0.5 / iw, H() * 0.3 / ih);
-  addElement({ type: "image", src, w: Math.round(iw * k), h: Math.round(ih * k), clip: "rect" });
+  addElement({ type: "image", src: await stashImage(src), w: Math.round(iw * k), h: Math.round(ih * k), clip: "rect" });
 }
 
 /* ── 오른쪽 패널: 속성 / 레이어 ── */
@@ -2950,26 +3016,94 @@ $("exportPngBtn").onclick = () => {
   renderFrame(c.getContext("2d"), ed.frame, { transparent: true });
   download(c.toDataURL("image/png"), `${ed.frame.name}_프레임.png`);
 };
-$("exportJsonBtn").onclick = () => {
-  const blob = new Blob([JSON.stringify({ app: "우리집 네컷", v: 1, frame: ed.frame })], { type: "application/json" });
-  const url = URL.createObjectURL(blob); download(url, `${ed.frame.name}.json`); setTimeout(() => URL.revokeObjectURL(url), 2000);
-};
+$("exportJsonBtn").onclick = () => shareFrames([ed.frame], `${ed.frame.name}.json`);
+// 프레임 파일 하나(그림까지 안에 담음)를 공유 시트로: AirDrop·카톡·메일·'파일에 저장'. 안 되면 다운로드
+async function shareFrames(frames, name) {
+  const list = await Promise.all(frames.map(async (f) => { const g = await mapFrameImages(f, unstashImage); delete g._draft; return g; }));
+  const data = list.length === 1 ? { app: "우리집 네컷", v: 1, frame: list[0] } : { app: "우리집 네컷", v: 1, frames: list };
+  const file = new File([JSON.stringify(data)], name.replace(/[\\/:*?"<>|]/g, "_"), { type: "application/json" });
+  try {
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "우리집 네컷 프레임" }); return; }
+  } catch (e) { if (e.name === "AbortError") return; }
+  const u = URL.createObjectURL(file); download(u, file.name); setTimeout(() => URL.revokeObjectURL(u), 60000);
+  toast("프레임 파일을 저장했어요. 받은 기기에서 '불러오기'로 열면 돼요.");
+}
+// 받은 프레임을 내 프레임에 넣기 (같은 이름이면 '(2)'를 붙임)
+async function addToMyFrames(f) {
+  const base = newFrame(f.layout), names = new Set(myFrames().map((x) => x.name));
+  let name = f.name || "받은 프레임", n = 2; const stem = name;
+  while (names.has(name)) name = `${stem} (${n++})`;
+  const g = await mapFrameImages({ ...base, ...f, slot: { ...base.slot, ...f.slot }, bg: { ...base.bg, ...f.bg }, id: uid(), name }, stashImage);
+  delete g._draft;
+  const list = myFrames(); list.push(g);
+  return store.set("m4c.frames", list) ? g : null;
+}
 $("importBtn").onclick = () => $("importFile").click();
-$("importFile").onchange = (e) => {
-  const file = e.target.files[0]; if (!file) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try {
-      const data = JSON.parse(rd.result), f = data.frame || data;
-      if (!LAYOUTS[f.layout] || !Array.isArray(f.elements)) throw new Error("형식");
-      const base = newFrame(f.layout);
-      loadIntoEditor({ ...base, ...f, slot: { ...base.slot, ...f.slot }, bg: { ...base.bg, ...f.bg }, id: uid() });
-      toast(`'${f.name}'을(를) 불러왔어요`);
-    } catch { toast("프레임 파일을 읽을 수 없어요"); }
-    e.target.value = "";
-  };
-  rd.readAsText(file);
+$("importFile").onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = ""; if (!file) return;
+  if (file.type.startsWith("image/")) return importCanva(file);
+  try {
+    const data = JSON.parse(await file.text()), raw = data.frames || [data.frame || data];
+    const ok = raw.filter((f) => LAYOUTS[f?.layout] && Array.isArray(f.elements));
+    if (!ok.length) throw new Error("형식");
+    let last = null; for (const f of ok) last = (await addToMyFrames(f)) || last;
+    if (!last) return;
+    loadIntoEditor(last); renderFramePick();
+    toast(ok.length > 1 ? `프레임 ${ok.length}개를 내 프레임에 넣었어요` : `'${last.name}'을(를) 내 프레임에 넣었어요`);
+  } catch { toast("프레임 파일을 읽을 수 없어요"); }
 };
+
+/* ════════════════ 캔바 PNG 프레임 ════════════════ */
+// 투명한 곳(또는 초록 #00FF00)을 사진 자리로 보고, 그림은 맨 위에 덮어 씌움
+async function importCanva(file) {
+  const img = new Image(), url = URL.createObjectURL(file);
+  try { img.src = url; await img.decode(); } catch { toast("그림을 열 수 없어요. PNG로 다시 받아 주세요."); return; } finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  const ar = img.width / img.height;
+  const fam = ar < 0.45 ? "strip" : ar < 1 ? "portrait" : "land";
+  const size = { strip: [600, 1800, 1 / 3], portrait: [1200, 1800, 2 / 3], land: [1800, 1200, 1.5] }[fam];
+  const [w, h] = size;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d"); x.drawImage(img, 0, 0, w, h);
+  const id = x.getImageData(0, 0, w, h), d = id.data;
+  let clear = 0;
+  for (let i = 3; i < d.length; i += 4) if (d[i] < 128) clear++;
+  let keyed = false;
+  if (clear < w * h * 0.03) {
+    // 투명한 곳이 거의 없으면 초록 사진 자리를 지움 (가장자리 섞인 색도 함께)
+    for (let i = 0; i < d.length; i += 4) {
+      const g = d[i + 1] - Math.max(d[i], d[i + 2]);
+      if (g > 90) { d[i + 3] = 0; keyed = true; } else if (g > 40) d[i + 3] = Math.round(d[i + 3] * (90 - g) / 50);
+    }
+    x.putImageData(id, 0, 0);
+  }
+  // 빈자리 덩어리 찾기 (4px 간격으로 살펴봄)
+  const S = 4, gw = Math.ceil(w / S), gh = Math.ceil(h / S), hole = new Uint8Array(gw * gh), lab = new Int32Array(gw * gh);
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) hole[gy * gw + gx] = d[((Math.min(h - 1, gy * S + 2)) * w + Math.min(w - 1, gx * S + 2)) * 4 + 3] < 128 ? 1 : 0;
+  const boxes = []; let L = 0;
+  for (let i = 0; i < gw * gh; i++) if (hole[i] && !lab[i]) {
+    L++; const st = [i]; lab[i] = L; let x0 = gw, y0 = gh, x1 = 0, y1 = 0, n = 0;
+    while (st.length) {
+      const j = st.pop(), jx = j % gw, jy = (j / gw) | 0; n++;
+      if (jx < x0) x0 = jx; if (jx > x1) x1 = jx; if (jy < y0) y0 = jy; if (jy > y1) y1 = jy;
+      for (const [ax, ay] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const kx = jx + ax, ky = jy + ay; if (kx < 0 || ky < 0 || kx >= gw || ky >= gh) continue; const k = ky * gw + kx; if (hole[k] && !lab[k]) { lab[k] = L; st.push(k); } }
+    }
+    if (n * S * S > w * h * 0.012) boxes.push({ x: Math.max(0, x0 * S - 4), y: Math.max(0, y0 * S - 4), w: Math.min(w, (x1 + 1) * S + 4) - Math.max(0, x0 * S - 4), h: Math.min(h, (y1 + 1) * S + 4) - Math.max(0, y0 * S - 4) });
+  }
+  if (!boxes.length) { toast("사진 자리를 찾지 못했어요. 사진 자리를 투명하게 하거나 초록색(#00FF00)으로 칠해 주세요."); return; }
+  // 위에서 아래로, 같은 줄이면 왼쪽부터
+  boxes.sort((a, b) => (Math.abs(a.y - b.y) < Math.min(a.h, b.h) / 2 ? a.x - b.x : a.y - b.y));
+  const n = boxes.length;
+  const layout = fam === "strip" ? (n === 3 ? "1x3" : "1x4") : fam === "portrait" ? (n === 1 ? "1x1" : n >= 5 ? "2x3" : "2x2") : "4x6l";
+  const f = newFrame(layout);
+  f.name = file.name.replace(/\.[^.]+$/, "").slice(0, 30) || "캔바 프레임";
+  f.slots = boxes.map((b) => ({ x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.w), h: Math.round(b.h) }));
+  f.elements = [{ id: uid(), type: "image", src: c.toDataURL("image/png"), name: "캔바 그림", x: w / 2, y: h / 2, w, h, rot: 0, opacity: 1, clip: "rect", locked: true }];
+  const saved = await addToMyFrames(f);
+  if (!saved) return;
+  loadIntoEditor(saved); ed.leftTab = "tpl"; refreshAll(); renderFramePick();
+  const off = Math.abs(ar - size[2]) / size[2] > 0.08;
+  toast(`사진 자리 ${n}곳을 찾아 '${saved.name}'을(를) 내 프레임에 넣었어요${keyed ? " (초록을 지웠어요)" : ""}${off ? " · 그림 비율이 달라 조금 늘어났어요" : ""}`);
+}
 
 /* ════════════════ 내 글꼴 (IndexedDB에 저장) ════════════════ */
 const customFonts = [];   // { family, name }
