@@ -10,10 +10,10 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="네컷">
+<meta name="apple-mobile-web-app-title" content="엽생네컷">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#e8546b">
-<title>우리집 네컷</title>
+<title>엽생네컷</title>
 <style>
   /* 함께 들어 있는 무료 글꼴 (SIL OFL) — 어느 기기에서나 똑같이 보이도록 */
   @font-face { font-family: "Pretendard"; src: url("fonts/PretendardVariable.woff2") format("woff2"); font-weight: 45 920; font-display: swap; }
@@ -603,7 +603,7 @@
 <body>
 <div class="sheet">
 <header class="top">
-  <a class="logo" href="#" aria-label="우리집 네컷"><span>우리집</span><span>네컷</span></a>
+  <a class="logo" href="#" aria-label="엽생네컷"><span>엽생</span><span>네컷</span></a>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="booth" aria-selected="true">촬영</button>
     <button role="tab" data-tab="editor" aria-selected="false">프레임 만들기</button>
@@ -766,7 +766,7 @@
 </div><!-- /sheet -->
 
 <footer class="foot">
-  <span class="logo" aria-hidden="true"><span>우리집</span><span>네컷</span></span>
+  <span class="logo" aria-hidden="true"><span>엽생</span><span>네컷</span></span>
   <p>사진과 영상은 이 기기 안에서만 처리돼요.<br>서버 업로드도, 분석 추적도 없어요.</p>
   <p class="hint" style="color:inherit;font-family:var(--sans);font-size:11px;letter-spacing:.06em">글꼴 SIL OFL · AI 모델 Apache 2.0<br>자세한 내용은 licenses 폴더</p>
 </footer>
@@ -2008,7 +2008,7 @@ function canShareFiles() {
 }
 async function shareCanvas(c, name) {
   const blob = await new Promise((r) => c.toBlob(r, "image/png"));
-  try { await navigator.share({ files: [new File([blob], name, { type: "image/png" })], title: "우리집 네컷" }); }
+  try { await navigator.share({ files: [new File([blob], name, { type: "image/png" })], title: "엽생네컷" }); }
   catch (e) { if (e.name !== "AbortError") toast("공유하지 못했어요. 파일로 저장을 이용해 주세요."); }
 }
 function download(url, name) { const a = document.createElement("a"); a.download = name; a.href = url; a.click(); }
@@ -3020,10 +3020,10 @@ $("exportJsonBtn").onclick = () => shareFrames([ed.frame], `${ed.frame.name}.jso
 // 프레임 파일 하나(그림까지 안에 담음)를 공유 시트로: AirDrop·카톡·메일·'파일에 저장'. 안 되면 다운로드
 async function shareFrames(frames, name) {
   const list = await Promise.all(frames.map(async (f) => { const g = await mapFrameImages(f, unstashImage); delete g._draft; return g; }));
-  const data = list.length === 1 ? { app: "우리집 네컷", v: 1, frame: list[0] } : { app: "우리집 네컷", v: 1, frames: list };
+  const data = list.length === 1 ? { app: "엽생네컷", v: 1, frame: list[0] } : { app: "엽생네컷", v: 1, frames: list };
   const file = new File([JSON.stringify(data)], name.replace(/[\\/:*?"<>|]/g, "_"), { type: "application/json" });
   try {
-    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "우리집 네컷 프레임" }); return; }
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "엽생네컷 프레임" }); return; }
   } catch (e) { if (e.name === "AbortError") return; }
   const u = URL.createObjectURL(file); download(u, file.name); setTimeout(() => URL.revokeObjectURL(u), 60000);
   toast("프레임 파일을 저장했어요. 받은 기기에서 '불러오기'로 열면 돼요.");
@@ -3175,7 +3175,7 @@ function fontSectionHtml() {
       <a href="https://fonts.google.com/?subset=korean" target="_blank" rel="noopener noreferrer">Google Fonts</a><br>
       글꼴마다 쓸 수 있는 범위가 달라요. 상업적으로 쓸 땐 라이선스를 확인하세요.</p>
     <div class="fontlist">${customFonts.map((f) => `<div class="item">
-      <div class="pv" style="font-family:'${esc(f.family)}', sans-serif">우리집 네컷 ABC 123</div>
+      <div class="pv" style="font-family:'${esc(f.family)}', sans-serif">엽생네컷 ABC 123</div>
       <div class="nm">${esc(f.family)}</div>
       <div class="row"><button class="btn sm" data-fadd="${esc(f.family)}">이 글꼴로 글자 추가</button>
       <button class="btn sm kioskHide" data-fdel="${esc(f.family)}">삭제</button></div></div>`).join("") || '<p class="hint">아직 추가한 글꼴이 없어요.</p>'}</div>`;

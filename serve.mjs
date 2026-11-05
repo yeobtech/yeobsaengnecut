@@ -1,4 +1,4 @@
-// 우리집 네컷 로컬 서버: 이 PC(127.0.0.1)에서만 접속할 수 있는 정적 파일 서버
+// 엽생네컷 로컬 서버: 이 PC(127.0.0.1)에서만 접속할 수 있는 정적 파일 서버
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, sep } from "node:path";
@@ -34,12 +34,12 @@ const server = createServer(async (req, res) => {
 server.on("error", (e) => {
   if (e.code === "EADDRINUSE") {
     // 이미 켜져 있으면 브라우저만 열기
-    console.log(`\n  우리집 네컷이 이미 켜져 있어요:  ${URL_}\n`);
+    console.log(`\n  엽생네컷이 이미 켜져 있어요:  ${URL_}\n`);
     openBrowser();
     setTimeout(() => process.exit(0), 1500);
   } else { console.error(e); }
 });
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`\n  우리집 네컷이 열렸어요:  ${URL_}\n  이 창을 닫으면 앱도 멈춰요.\n`);
+  console.log(`\n  엽생네컷이 열렸어요:  ${URL_}\n  이 창을 닫으면 앱도 멈춰요.\n`);
   openBrowser();
 });
