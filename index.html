@@ -1605,9 +1605,19 @@ const pic = (key, size, p) => {
   const [name, w, h] = STK[key], k = size / Math.max(w, h);
   return { id: uid(), type: "image", src: `stickers/${key}.webp`, name, w: Math.round(w * k), h: Math.round(h * k), rot: 0, opacity: 1, clip: "rect", ...p };
 };
+// 그림 프레임 (frames/ 폴더): 그림을 맨 위에 덮고, 사진칸은 그림의 빈자리
+const pngFrame = (layout, name, file, slots) => T(layout, name, (f) => {
+  const L = LAYOUTS[layout];
+  f.slots = slots;
+  f.elements.push({ id: uid(), type: "image", src: `frames/${file}.webp`, name, x: L.w / 2, y: L.h / 2, w: L.w, h: L.h, rot: 0, opacity: 1, clip: "rect", locked: true });
+});
+const GRID4 = [{ x: 50, y: 47, w: 540, h: 735 }, { x: 609, y: 47, w: 540, h: 735 }, { x: 50, y: 804, w: 540, h: 738 }, { x: 609, y: 804, w: 540, h: 738 }];
 const shp = (p) => ({ id: uid(), type: "shape", shape: "heart", w: 120, h: 120, fill: "#ff8fab", fillOn: true, strokeW: 0, strokeC: "#ffffff", rot: 0, opacity: 1, ...p });
 
 const TEMPLATES = [
+  pngFrame("1x1", "가정교육과", "hed", [{ x: 70, y: 150, w: 1060, h: 1260 }]),
+  pngFrame("2x2", "T1 롤드컵 화이팅", "t1", GRID4),
+  pngFrame("2x2", "삼성 우승", "lions", GRID4),
   T("1x4", "클래식 화이트", (f) => {
     f.elements.push(txt({ text: "OUR DAY", font: "Georgia", size: 54, spacing: 6, x: 300, y: 1702 }),
       txt({ text: "{date}", size: 22, bold: false, color: "#8a847c", spacing: 2, x: 300, y: 1762 }));
@@ -3827,8 +3837,9 @@ tick(); setInterval(tick, 1000);
 let assetTimer;
 onAssetLoad = () => { clearTimeout(assetTimer); assetTimer = setTimeout(() => { draw(); if (!$("booth").hidden) renderFramePick(); }, 50); };
 
-loadIntoEditor(store.get("m4c.draft", null) || TEMPLATES[0]);
-boothSetFrame(store.get("m4c.boothFrame", null) || TEMPLATES[0]);
+const DEFAULT_TPL = TEMPLATES.find((t) => t.id === "tpl-클래식 화이트") || TEMPLATES[0];
+loadIntoEditor(store.get("m4c.draft", null) || DEFAULT_TPL);
+boothSetFrame(store.get("m4c.boothFrame", null) || DEFAULT_TPL);
 renderBgPick();
 { const id = store.get("m4c.boothFilter", "none"); booth.filter = clone(allFilters().find((f) => f.id === id) || PRESET_FILTERS[0]); renderFilterPick(); refreshLive(); }
 loadFonts();
